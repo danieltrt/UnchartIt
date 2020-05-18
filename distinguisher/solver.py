@@ -3,9 +3,8 @@ import  time
 
 class Solver:
 
-    def __init__(self, name, template):
+    def __init__(self, name):
         self.name = name
-        self.template = template
 
     def run(self, symbolic_representation):
         dimacs = symbolic_representation.get_dimacs()
@@ -20,8 +19,7 @@ class Solver:
         lns = str(out, encoding='utf-8')
 
         model = self.get_model(lns.splitlines())
-        inpt = self.template.extract_input(model)
-        return model, inpt
+        return model
 
     def sign(self, l):
         return l[0] == '-'

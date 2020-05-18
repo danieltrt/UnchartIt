@@ -17,6 +17,7 @@ class CBMC(ModelChecker):
     negative_assertion = "assert(not_equiv({}));".format(var)
     cbmc_positive_assertion = "return_value_is_equiv"
     cbmc_negative_assertion = "return_value_not_equiv"
+    cbmc_input_name = "c main::1::df!0@1#1 "
     template_assertions = "ASSERTIONS"
 
     n_soft_clauses = 1024
@@ -40,8 +41,9 @@ class CBMC(ModelChecker):
         n_vars, n_clauses, inc_dimacs = self.get_dimacs(lns.splitlines())
         eq_vars = self.get_eq_vars(lns.splitlines())
         neq_vars = self.get_neq_vars(lns.splitlines())
+        input_vars = self.get_input_vars(lns.splitlines())
 
-        return SymbolicRepresentation(n_vars, n_clauses, inc_dimacs, eq_vars, neq_vars, self.n_soft_clauses)
+        return SymbolicRepresentation(n_vars, n_clauses, self.n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars)
 
     def add_assertions(self, c_program, equiv_vars):
         assertions = ""
@@ -78,16 +80,27 @@ class CBMC(ModelChecker):
                     neq_vars += [line[1]]
         return neq_vars
 
+    def get_input_vars(self, lines):
+        inpt_vars = []
+        for line in lines:
+            if line.find(self.cbmc_input_name) != -1:
+                line = line[len(self.cbmc_input_name):].split(" ")
+                inpt_vars += line
+        return inpt_vars
+
+
+
 
 class SymbolicRepresentation:
 
-    def __init__(self, n_vars, n_clauses, inc_dimacs, eq_vars, neq_vars, n_soft_clauses):
+    def __init__(self, n_vars, n_clauses, n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars):
         self.n_vars = n_vars
         self.n_clauses = n_clauses
+        self.n_soft_clauses = n_soft_clauses
         self.inc_dimacs = inc_dimacs
         self.eq_vars = eq_vars
         self.neq_vars = neq_vars
-        self.n_soft_clauses = n_soft_clauses
+        self.input_vars = input_vars
 
     def add_variable(self):
         self.n_vars += 1

@@ -1,4 +1,6 @@
 from distinguisher.checker import *
+from distinguisher.solver import *
+from distinguisher.interpreter import *
 
 
 class InteractionModel:
@@ -12,7 +14,7 @@ class InteractionModel:
 
 class OptionsInteractionModel(InteractionModel):
 
-    def __init__(self, model_checker, solver, interpreter):
+    def __init__(self, model_checker: ModelChecker, solver: Solver, interpreter: Interpreter):
 
         self.model_checker = model_checker
         self.solver = solver
@@ -24,7 +26,8 @@ class OptionsInteractionModel(InteractionModel):
         symbolic_representation.add_hard_clause(variables)
         for var in variables:
             symbolic_representation.add_soft_clause(1, [var])
-        model, inpt = self.solver.run(symbolic_representation)
+        model = self.solver.run(symbolic_representation)
+        inpt = self.interpreter.extract_input(symbolic_representation, model, input_constraints)
         sets = self.get_sets(model, programs, symbolic_representation.eq_vars)
         representatives = {next(iter(el)): el for el in sets}
         results = {}

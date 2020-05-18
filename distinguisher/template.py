@@ -9,10 +9,8 @@ class Template:
     def genarate_c(self):
         pass
 
-    def extract_input(self, model):
-        pass
 
-class UnchartItTemplate(Template):
+class CBMCTemplate(Template):
 
     template_n_programs = "N_PROGRAMS"
     template_program_calls = "PROGRAM_CALLS"
@@ -44,12 +42,16 @@ class UnchartItTemplate(Template):
 
         template = self.template.replace(self.template_n_programs, n_programs)
         template = template.replace(self.template_init_inputs, input_constraints[0])
-        template = template.replace(self.template_n_cols, str(input_constraints[1]))
-        template = template.replace(self.template_n_rows, str(input_constraints[2]))
+        template = template.replace(self.template_n_rows, str(input_constraints[1]))
+        template = template.replace(self.template_n_cols, str(input_constraints[2]))
         template = template.replace(self.template_program_calls, program_calls)
         template = template.replace(self.template_equality, equality)
         template = template.replace(self.template_programs, programs_strings)
         return template, equiv_vars
 
-    def extract_input(self, model):
+
+class InterpreterTemplate(Template):
+
+    def genarate_c(self):
         pass
+

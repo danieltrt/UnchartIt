@@ -1,8 +1,9 @@
+from distinguisher.model import *
 
 
 class Distinguisher:
 
-    def __init__(self, interaction_model, programs, input_constraints):
+    def __init__(self, interaction_model: InteractionModel, programs, input_constraints):
         self.interaction_model = interaction_model
         self.programs = programs
         self.input_constraints = input_constraints

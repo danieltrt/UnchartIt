@@ -18,17 +18,16 @@ if __name__ == "__main__":
     with open(cmd_args.details) as f:
         data = json.load(f)
 
-    # UnchartItSpecific
     programs = []
     programs_paths = [data['programs'] + f for f in listdir(data['programs'])]
     for program_path in programs_paths:
         programs += [UnchartItProgram(program_path)]
-    template = UnchartItTemplate(data["template"])
-    interpreter = UnchartItInterpreter()
+    cbmc_template = CBMCTemplate(data["cbmc_template"])
+    interpreter_template = InterpreterTemplate(data["interpreter_template"])
 
-    # Generic, but must comply with the specification
-    model_checker = CBMC(template)
-    solver = Solver(cmd_args.solver, template)
+    model_checker = CBMC(cbmc_template)
+    solver = Solver(cmd_args.solver)
+    interpreter = UnchartItInterpreter(interpreter_template)
     interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
 
     dst = Distinguisher(interaction_model, programs, data['input_constraints'])
