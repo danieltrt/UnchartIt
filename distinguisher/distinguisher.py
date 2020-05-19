@@ -10,7 +10,10 @@ class Distinguisher:
 
     def distinguish(self):
         while True:
-            self.interaction_model.generate_interaction(self.programs, self.input_constraints)
+            programs = self.interaction_model.generate_interaction(self.programs, self.input_constraints)
+            if programs == self.programs or len(programs) == 1:
+                return programs
+            self.programs = programs
 
 
 

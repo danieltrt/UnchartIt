@@ -28,7 +28,7 @@ if __name__ == "__main__":
     model_checker = CBMC(cbmc_template)
     solver = Solver(cmd_args.solver)
     interpreter = UnchartItInterpreter(interpreter_template)
-    interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
+    interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
 
     dst = Distinguisher(interaction_model, programs, data['input_constraints'])
     dst.distinguish()

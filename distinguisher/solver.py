@@ -1,5 +1,6 @@
 import subprocess
-import  time
+import time
+
 
 class Solver:
 

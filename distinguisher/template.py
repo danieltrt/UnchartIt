@@ -6,7 +6,7 @@ class Template:
         with open(path_to_template, "r") as f:
             self.template = f.read()
 
-    def genarate_c(self):
+    def genarate_c(self, programs, input_constraints):
         pass
 
 
@@ -21,7 +21,6 @@ class CBMCTemplate(Template):
     template_n_rows = "N_ROWS"
 
     def generate_c(self, programs, input_constraints):
-        programs = sorted(programs)
         n_programs = str(len(programs))
         program_calls = ""
         equality = ""
@@ -31,6 +30,7 @@ class CBMCTemplate(Template):
             programs_strings += program.string + os.linesep
 
         for i in range(len(programs)):
+            programs[i].current_idx = i  # hack
             program_calls += str(programs[i].call()) + os.linesep
 
         equiv_vars = []
@@ -52,6 +52,31 @@ class CBMCTemplate(Template):
 
 class InterpreterTemplate(Template):
 
-    def genarate_c(self):
-        pass
+    template_n_cols = "N_COLS"
+    template_n_rows = "N_ROWS"
+    template_n_programs = "N_PROGRAMS"
+    template_program_calls = "PROGRAM_CALLS"
+    template_programs = "PROGRAM_STRINGS"
+    template_actual_table = "ACTUAL_TABLE"
+    template_program_output = "PROGRAM_OUTPUTS"
+    template_print = "pretty_print"
+
+    def genarate_c(self, program, inpt):
+        #header
+        template = self.template.replace(self.template_n_programs, "1")
+        template = template.replace(self.template_n_rows, str(inpt.n_rows))
+        template = template.replace(self.template_n_cols, str(inpt.n_cols))
+
+        #inputs
+        template = template.replace(self.template_actual_table, inpt.generate_c())
+
+        #call
+        template = template.replace(self.template_programs, program.string)
+        program_call = "{}{}(&input);".format(program.name, program.get_number())
+        template = template.replace(self.template_program_calls, program_call)
+        program_output = "{}(&input);".format(self.template_print)
+        template = template.replace(self.template_program_output, program_output)
+
+        return template
+
 

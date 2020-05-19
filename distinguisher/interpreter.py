@@ -1,6 +1,12 @@
 import sys
+import time
+import subprocess
+
 
 class Interpreter:
+
+    def __init__(self, template):
+        self.template = template
 
     def evaluate(self, program, inpt):
         pass
@@ -11,11 +17,22 @@ class Interpreter:
 
 class UnchartItInterpreter(Interpreter):
 
-    def __init__(self, template):
-        self.template = template
-
     def evaluate(self, program, inpt):
-        pass
+        code = self.template.genarate_c(program, inpt)
+        file_n = int(time.time() * 100)
+        with open("/tmp/uncharit_interpreter_{}.c".format(file_n), "a+") as f:
+            f.write(code)
+
+        cmd = "gcc /tmp/uncharit_interpreter_{}.c -o /tmp/uncharit_interpreter_{}".format(file_n, file_n)
+        p = subprocess.Popen(cmd, shell=True)
+        p.communicate()
+        subprocess.call(["rm", "/tmp/uncharit_interpreter_{}.c".format(file_n)])
+
+        p = subprocess.Popen('/tmp/uncharit_interpreter_{}'.format(file_n), shell=True, stdout=subprocess.PIPE)
+        output = p.communicate()[0].decode()
+        subprocess.call(["rm", "/tmp/uncharit_interpreter_{}".format(file_n)])
+
+        return self.extract_output(output)
 
     def extract_input(self, symbolic_representation, model, input_constraints):
         rows = input_constraints[1]
@@ -48,6 +65,18 @@ class UnchartItInterpreter(Interpreter):
             groups[i] = self.twos(bit_str, n_bits // 8)
         return Table(table, active_rows, [1 for _ in range(len(active_cols) - 1)] + [0])
 
+    def extract_output(self, output):
+        output = output.splitlines()
+        active_cols = [1 for _ in range(len(output[0].split(" ")[:-1]))]
+        table = []
+        active_rows = []
+        for line in output[1:]:
+            line = line.split(" ")[:-1]
+            line = list(map(lambda x: int(x), line))
+            table += [line]
+            active_rows += [1]
+        return Table(table, active_rows, active_cols)
+
     def read_bits(self, model, first, bits):
         bit_str = ""
         for k in range(0, bits):
@@ -69,11 +98,11 @@ class Table:
         self.table = table
         self.active_rows = active_rows
         self.active_cols = active_cols
-        self.rows = sum(active_rows)
-        self.cols = sum(active_cols)
+        self.n_rows = sum(active_rows)
+        self.n_cols = sum(active_cols) + 1
 
-    def toString(self):
-        string = "Input Table\n"
+    def display(self):
+        string = ""
         for i in range(len(self.active_rows)):
             if self.active_rows[i] == 1:
                 for j in range(len(self.active_cols)):
@@ -82,7 +111,7 @@ class Table:
                 string += "\n"
         return string[:-1]
 
-    def __str__(self):
+    def generate_c(self):
         tab = ""
         active = ""
         for i in range(len(self.active_rows)):

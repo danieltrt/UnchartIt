@@ -11,7 +11,6 @@
 #define INFINITY 8388607
 #define N_DECIMALS 100
 #define NUMBER_PROGRAMS N_PROGRAMS
-#define CBMC
 
 #ifdef CBMC
 typedef __CPROVER_bitvector[8] int8;
@@ -465,13 +464,7 @@ int8 is_equiv(int8 eq) {
 
 
 void init_input(dataframe *df){
-#ifdef CBMC
-    for (int8 i = 0; i < ROWS; i++) {
-INPUT_CONSTRAINTS
-    }
-#else
 
-#endif
 
     //no groups
     for (int8 i = 0; i < ROWS; i++)
@@ -481,24 +474,10 @@ INPUT_CONSTRAINTS
     for (int8 i = 0; i < ROWS; i++)
         df->table[i][COLS-1] = 0;
 
-    // at least one active row
-#ifdef CBMC
-    int8 row_sum = 0;
-    for (int8 i = 0; i < ROWS; i++) {
-        row_sum += df->active_rows[i];
-        __CPROVER_assume(df->active_rows[i] >= 0 && df->active_rows[i] <= 1);
-    }
-    __CPROVER_assume(row_sum > 1);
-
-    __CPROVER_assume(df->active_rows[0] == 1);
-    for (int8 i = 1; i < ROWS; i++)
-        __CPROVER_assume(df->active_rows[i] == 0 || df->active_rows[i-1] == 1);
-#else
     for (int8 i = 0; i < ROWS; i++)
         df->active_rows[i] = 0;
-INITIALIZE_ACTUAL_INPUTS
 
-#endif
+ACTUAL_TABLE
 
     df->active_cols[COLS-1] = 0;
     for (int8 i = 0; i < COLS-1; i++){
@@ -538,12 +517,16 @@ void copy_input(dataframe *from, dataframe *to){
 
 #ifndef CBMC
 void pretty_print(dataframe *df){
-    printf("Output Table:\n");
+    for (int j = 0; j < COLS; j++){
+        if (df->active_cols[j] == 1)
+            printf("%d ", j);
+    }
+    printf("\n");
     for (int i = 0; i < ROWS; i++){
         if (df->active_rows[df->order[i]] == 1) {
             for (int j = 0; j < COLS; j++){
                 if (df->active_cols[j] == 1) {
-                    printf(" [%d]",df->table[df->order[i]][j]);
+                    printf("%d ",df->table[df->order[i]][j]);
                 }
             }
             printf("\n");
@@ -554,15 +537,11 @@ void pretty_print(dataframe *df){
 
 int main(int argc, char *argv[]) {
 
-    dataframe df;
-    init_input(&df);
+    dataframe input;
+    init_input(&input);
 
     dataframe p[NUMBER_PROGRAMS];
 
 PROGRAM_CALLS
-#ifdef CBMC
-EQUALITY_PROGRAMS
-
-ASSERTIONS
-#endif
+PROGRAM_OUTPUTS
 }

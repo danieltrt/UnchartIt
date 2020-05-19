@@ -11,13 +11,16 @@ class ModelChecker:
 
 
 class CBMC(ModelChecker):
+    """ The CBMC requires a template to generate C.
+        The template must implement the is_equiv and not_equiv functions.
+        It must also contain a variable named input."""
 
     var = "VAR"
     positive_assertion = "assert(is_equiv({}));".format(var)
     negative_assertion = "assert(not_equiv({}));".format(var)
     cbmc_positive_assertion = "return_value_is_equiv"
     cbmc_negative_assertion = "return_value_not_equiv"
-    cbmc_input_name = "c main::1::df!0@1#1 "
+    cbmc_input_name = "c main::1::input!0@1#1 "
     template_assertions = "ASSERTIONS"
 
     n_soft_clauses = 1024
@@ -58,7 +61,7 @@ class CBMC(ModelChecker):
             lines = lines[1:]
         header = lines[0][len("p cnf "):].split(" ")
         inc_dimacs = list(filter(lambda line: not line.startswith("c "), lines[1:]))
-        inc_dimacs = ["{} {}".format(self.n_soft_clauses, el) for el in inc_dimacs]
+        inc_dimacs = ["{} {}".format(self.n_soft_clauses + 1, el) for el in inc_dimacs]
         inc_dimacs = "{}".format(os.linesep).join(inc_dimacs)
         return int(header[0]), int(header[1]), inc_dimacs
 
@@ -69,7 +72,7 @@ class CBMC(ModelChecker):
                 line = line[line.find(self.cbmc_positive_assertion):].split(" ")
                 if line[2] == "FALSE" or line[2] == "TRUE":
                     eq_vars += [line[1]]
-        return eq_vars
+        return sorted(eq_vars, key=int)
 
     def get_neq_vars(self, lines):
         neq_vars = []
@@ -78,7 +81,7 @@ class CBMC(ModelChecker):
                 line = line[line.find(self.cbmc_negative_assertion):].split(" ")
                 if line[2] == "FALSE" or line[2] == "TRUE":
                     neq_vars += [line[1]]
-        return neq_vars
+        return sorted(neq_vars, key=int)
 
     def get_input_vars(self, lines):
         inpt_vars = []
@@ -97,14 +100,14 @@ class SymbolicRepresentation:
         self.n_vars = n_vars
         self.n_clauses = n_clauses
         self.n_soft_clauses = n_soft_clauses
-        self.inc_dimacs = inc_dimacs
+        self.inc_dimacs = inc_dimacs + os.linesep
         self.eq_vars = eq_vars
         self.neq_vars = neq_vars
         self.input_vars = input_vars
 
     def add_variable(self):
         self.n_vars += 1
-        return self.n_vars
+        return str(self.n_vars)
 
     def add_hard_clause(self, variables):
         clause = "{} ".format(self.n_soft_clauses + 1)
@@ -127,5 +130,28 @@ class SymbolicRepresentation:
     def get_dimacs(self):
         header = "p wcnf {} {} {}".format(self.n_vars, self.n_clauses, self.n_soft_clauses + 1) + os.linesep
         return header + self.inc_dimacs
+
+    def create_totalizer(self, l, u, p):
+        ret = [self.add_variable()]
+        ending = [self.add_variable()]
+        self.add_hard_clause([ret[0]])
+        self.add_hard_clause(['-' + ending[0]])
+        if l >= u:
+            return ret + [p[l]] + ending
+
+        left_vars = self.create_totalizer(l, l + (u-l)//2, p)  #[q]
+        right_vars = self.create_totalizer(l + (u-l)//2 + 1, u, p) #[r]
+
+        for i in range(l, u+1):
+            ret += [self.add_variable()]
+
+        ret += ending
+
+        for i in range(len(left_vars)-1):
+            for j in range(len(right_vars)-1):
+                self.add_hard_clause(['-' + left_vars[i], '-' + right_vars[j], ret[i+j]]) #[p]
+                self.add_hard_clause([left_vars[i+1], right_vars[j+1], '-' + ret[i+j+1]]) #[p]
+
+        return ret
 
 
