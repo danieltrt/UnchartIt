@@ -6,26 +6,27 @@ import subprocess
 class ModelChecker:
 
     def generate_symbolic_representation(self, programs):
-        pass
-    
+        raise NotImplementedError
+
+
+class ModelInterpreter:
+
+    def extract_input(self, symbolic_representation, model):
+        raise NotImplementedError
+
+    def extract_output(self, symbolic_representation, model, idx):
+        raise NotImplementedError
+
 
 class Template:
 
     def __init__(self, path_to_impl):
-        with open(path_to_impl, "r") as f:
-            self.template = f.read()
+        f = open(path_to_impl, "r")
+        self.template = f.read()
+        f.close()
 
     def genarate_code(self, programs, input_constraints):
         pass
-    
-    
-class ModelInterpreter:
-
-    def extract_input(self, symbolic_representation, model):
-        pass
-
-    def extract_output(self, symbolic_representation, model, idx):
-        pass   
 
 
 class CBMC(ModelChecker):
@@ -44,7 +45,7 @@ class CBMC(ModelChecker):
     cbmc_output_name = "c main::1::output!0@1#"
     n_soft_clauses = 1024
 
-    def __init__(self, template: Template):
+    def __init__(self, template):
         self.template = template
 
     def generate_symbolic_representation(self, programs):
@@ -213,5 +214,3 @@ class SymbolicRepresentation:
                 self.add_hard_clause([left_vars[i+1], right_vars[j+1], '-' + ret[i+j+1]]) #[p]
 
         return ret
-
-

@@ -1,6 +1,5 @@
 from distinguisher.checker import *
 from distinguisher.solver import *
-from distinguisher.interpreter import *
 
 
 class InteractionModel:
@@ -14,7 +13,7 @@ class InteractionModel:
 
 class OptionsInteractionModel(InteractionModel):
 
-    def __init__(self, model_checker: ModelChecker, solver: Solver, interpreter: ModelInterpreter):
+    def __init__(self, model_checker, solver, interpreter):
         self.model_checker = model_checker
         self.solver = solver
         self.interpreter = interpreter
@@ -71,7 +70,7 @@ class OptionsInteractionModel(InteractionModel):
 
 class YesNoInteractionModel(InteractionModel):
 
-    def __init__(self, model_checker: ModelChecker, solver: Solver, interpreter: ModelInterpreter):
+    def __init__(self, model_checker, solver, interpreter):
 
         self.model_checker = model_checker
         self.solver = solver

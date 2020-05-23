@@ -5,7 +5,7 @@ from typing import List
 
 class Distinguisher:
 
-    def __init__(self, interaction_model: InteractionModel, programs: List[CProgram]):
+    def __init__(self, interaction_model, programs):
         self.interaction_model = interaction_model
         self.programs = programs
 

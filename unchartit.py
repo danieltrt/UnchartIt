@@ -2,10 +2,9 @@ from distinguisher.distinguisher import *
 from distinguisher.model import *
 from distinguisher.program import *
 from argparse import *
-from os import listdir
-import json
-import os
-import sys
+from os import listdir, linesep
+from json import load
+from sys import byteorder
 
 
 class UnchartItProgram(CProgram):
@@ -34,7 +33,7 @@ class UnchartItTemplate(Template):
         programs_strings = ""
 
         for program in programs:
-            programs_strings += program.string + os.linesep
+            programs_strings += program.string + linesep
 
         template = self.template.replace(self.template_n_programs, n_programs)
         template = template.replace(self.template_init_inputs, self.init_input)
@@ -104,8 +103,8 @@ class UnchartItInterpreter(ModelInterpreter):
     @staticmethod
     def twos(val_str, bytes):
         val = int(val_str, 2)
-        b = val.to_bytes(bytes, byteorder=sys.byteorder, signed=False)
-        return int.from_bytes(b, byteorder=sys.byteorder, signed=True)
+        b = val.to_bytes(bytes, byteorder=byteorder, signed=False)
+        return int.from_bytes(b, byteorder=byteorder, signed=True)
 
 
 class Table:
@@ -135,7 +134,7 @@ if __name__ == "__main__":
     cmd_args = arg_parser.parse_args()
 
     with open(cmd_args.details) as f:
-        data = json.load(f)
+        data = load(f)
 
     # UnchartIt specific
     programs = []
