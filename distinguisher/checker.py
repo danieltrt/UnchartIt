@@ -35,7 +35,7 @@ class CBMC(ModelChecker):
     cbmc_output_name = "c main::1::output!0@1#"
     n_soft_clauses = 1024
 
-    def __init__(self, template):
+    def __init__(self, template: Template):
         self.template = template
 
     def generate_symbolic_representation(self, programs):
