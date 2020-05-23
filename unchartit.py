@@ -11,44 +11,20 @@ import subprocess
 
 
 class UnchartItProgram(Program):
-    name = "program"
-    end = "("
-    return_value = "int8"
-    equiv_fn = "equiv"
 
-    def __init__(self, path, idx):
-        super().__init__(path, idx)
-
-    def get_number(self):
-        first_line = self.string.split(os.linesep)[0]
-        begin = first_line.find(self.name) + len(self.name)
-        end = first_line.find(self.end)-len(self.end) + 1
-        return int(first_line[begin:end])
+    def __init__(self, path):
+        super().__init__(path, "void", "dataframe")
 
     def call(self, var):
         first_line = self.string.split(os.linesep)[0]
-        begin = first_line.find(self.name)
-        end = first_line.find(self.end)
+        begin = len(self.return_value) + 1
+        end = first_line.find("(")
         call_string = first_line[begin:end]
         call_string += "({});".format(var)
-
         return call_string
-
-    def equiv(self, other):
-        var_name = "a{}{}".format(self.get_number(), other.get_number())
-        assignment = "{} {} = {}(&p[{}], &p[{}]);".format(self.return_value, var_name, self.equiv_fn,
-                                                          self.idx, other.idx)
-
-        return var_name, assignment
-
-    def get_input_type(self):
-        return "dataframe"
 
     def get_input_vector(self, name, size):
         return self.get_input_type() + " {}[{}];".format(name, size)
-
-    def __lt__(self, other):
-        return self.get_number() < other.get_number()
 
 
 class CBMCTemplate(Template):
@@ -84,6 +60,7 @@ class InterpreterTemplate(Template):
     template_actual_table = "ACTUAL_TABLE"
     template_program_output = "PROGRAM_OUTPUTS"
     template_print = "pretty_print"
+    input_var = "input"
 
     def genarate_code(self, program, inpt):
         #header
@@ -96,9 +73,9 @@ class InterpreterTemplate(Template):
 
         #call
         template = template.replace(self.template_programs, program.string)
-        program_call = "{}{}(&input);".format(program.name, program.get_number())
+        program_call = program.call("&{}".format(self.input_var))
         template = template.replace(self.template_program_calls, program_call)
-        program_output = "{}(&input);".format(self.template_print)
+        program_output = "{}(&{});".format(self.template_print, self.input_var)
         template = template.replace(self.template_program_output, program_output)
 
         return template
@@ -224,17 +201,15 @@ if __name__ == "__main__":
 
     programs = []
     programs_paths = [data['programs'] + f for f in listdir(data['programs'])]
-    i = 1
     for program_path in programs_paths:
-        programs += [UnchartItProgram(program_path, i)]
-        i += 1
+        programs += [UnchartItProgram(program_path)]
     cbmc_template = CBMCTemplate(data["cbmc_template"])
     interpreter_template = InterpreterTemplate(data["interpreter_template"])
 
     model_checker = CBMC(cbmc_template)
     solver = Solver(cmd_args.solver)
     interpreter = UnchartItInterpreter(interpreter_template)
-    interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
+    interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
 
     dst = Distinguisher(interaction_model, programs, data['input_constraints'])
     dst.distinguish()

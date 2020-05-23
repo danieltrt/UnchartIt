@@ -58,18 +58,17 @@ class CBMC(ModelChecker):
         main += " " * 4 + programs[0].get_input_vector("p", len(programs)) + os.linesep
 
         main += " " * 4 + "for (int i = 0; i < {}; i++)".format(len(programs)) + " {" + os.linesep
-        for i in range(len(programs)):
-            main += " " * 8 + "copy_input(&input, p + i);" + os.linesep
+        main += " " * 8 + "copy_input(&input, p + i);" + os.linesep
         main += " " * 4 + "}" + os.linesep
 
         for i in range(len(programs)):
-            programs[i].idx = i
             main += " " * 4 + str(programs[i].call("&p[{}]".format(i))) + os.linesep
 
         equiv_vars = []
         for i in range(len(programs)):
             for j in range(i + 1, len(programs)):
-                var_name, assignment = programs[i].equiv(programs[j])
+                var_name = "a{}{}".format(programs[i].idx, programs[j].idx)
+                assignment = "int {} = equiv(&p[{}], &p[{}]);".format(var_name, i, j)
                 main += " " * 4 + assignment + os.linesep
                 equiv_vars += [var_name]
 
