@@ -17,6 +17,15 @@ class Template:
 
     def genarate_code(self, programs, input_constraints):
         pass
+    
+    
+class ModelInterpreter:
+
+    def extract_input(self, symbolic_representation, model):
+        pass
+
+    def extract_output(self, symbolic_representation, model, idx):
+        pass   
 
 
 class CBMC(ModelChecker):
