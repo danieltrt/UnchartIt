@@ -13,13 +13,9 @@
 #define NUMBER_PROGRAMS N_PROGRAMS
 #define CBMC
 
-#ifdef CBMC
 typedef __CPROVER_bitvector[8] int8;
 typedef __CPROVER_bitvector[24] dec24;
-#else
-typedef char int8;
-typedef int dec24;
-#endif
+
 
 typedef struct dataframe {
     dec24 table[ROWS][COLS];
@@ -41,7 +37,6 @@ enum mutate_date_op{wday, year, month, days_between};
 enum summarize_op{mean, median, sum, max, min};
 enum arrange_op{ascending, descending};
 
-// aux functions
 void insertion_sort(dec24 array[], int8 max_val) {
     dec24 key;
     int8 i, j;
@@ -57,7 +52,6 @@ void insertion_sort(dec24 array[], int8 max_val) {
         }
     }
 }
-
 
 void arrange_aux(dataframe *df, enum arrange_op operator, int8 col, int8 order[]) {
     if (df->active_cols[col] == 1) {
@@ -86,7 +80,6 @@ void arrange_aux(dataframe *df, enum arrange_op operator, int8 col, int8 order[]
     }
 }
 
-// dplyr functions
 void group_by(dataframe *df, int8 col) {
     if (df->active_cols[col]){
         df->col_group = col;
@@ -192,7 +185,6 @@ void mutate(dataframe *df, enum mutate_op operator, int8 col) {
     }
 }
 
-
 void mutate_date(dataframe *df, enum mutate_date_op operator, int8 col1, int8 col2) {
     if (df->active_cols[col1]) {
         if (operator == wday) {
@@ -229,7 +221,6 @@ void mutate_date(dataframe *df, enum mutate_date_op operator, int8 col1, int8 co
         }
     }
 }
-
 
 void summarize(dataframe *df, enum summarize_op operator, int8 col) {
     if (df->active_cols[col]){
@@ -336,11 +327,9 @@ void summarize(dataframe *df, enum summarize_op operator, int8 col) {
     }
 }
 
-
 void arrange(dataframe *df, enum arrange_op operator, int8 col){
     arrange_aux(df, operator, col, df->order);
 }
-
 
 void top_n(dataframe *df, int8 col, int8 n) {
     if (df->active_cols[col] == 1) {
@@ -387,7 +376,10 @@ void select_(dataframe *df, int8* cols, int8 n_cols) {
 
 PROGRAM_STRINGS
 
-int8 equiv(dataframe *df1, dataframe *df2){
+int equiv(void *o1, void *o2){
+    dataframe* df1 = (dataframe*) o1;
+    dataframe* df2 = (dataframe*) o2;
+
     int8 eq = 1;
 
     if (eq){
@@ -455,23 +447,12 @@ int8 equiv(dataframe *df1, dataframe *df2){
     return eq;
 }
 
-int8 not_equiv(int8 eq) {
-    return !eq;
-}
+void init_input(void *input){
+    dataframe* df = (dataframe*) input;
 
-int8 is_equiv(int8 eq) {
-    return eq;
-}
-
-
-void init_input(dataframe *df){
-#ifdef CBMC
     for (int8 i = 0; i < ROWS; i++) {
 INPUT_CONSTRAINTS
     }
-#else
-
-#endif
 
     //no groups
     for (int8 i = 0; i < ROWS; i++)
@@ -482,7 +463,6 @@ INPUT_CONSTRAINTS
         df->table[i][COLS-1] = 0;
 
     // at least one active row
-#ifdef CBMC
     int8 row_sum = 0;
     for (int8 i = 0; i < ROWS; i++) {
         row_sum += df->active_rows[i];
@@ -493,10 +473,6 @@ INPUT_CONSTRAINTS
     __CPROVER_assume(df->active_rows[0] == 1);
     for (int8 i = 1; i < ROWS; i++)
         __CPROVER_assume(df->active_rows[i] == 0 || df->active_rows[i-1] == 1);
-#else
-    for (int8 i = 0; i < ROWS; i++)
-        df->active_rows[i] = 0;
-#endif
 
     df->active_cols[COLS-1] = 0;
     for (int8 i = 0; i < COLS-1; i++){
@@ -507,9 +483,10 @@ INPUT_CONSTRAINTS
     }
 }
 
+void copy_input(void *f, void *t){
+    dataframe* from = (dataframe*) f;
+    dataframe* to = (dataframe*) t;
 
-
-void copy_input(dataframe *from, dataframe *to){
     for (int8 i = 0; i < ROWS; i++){
         for (int8 j = 0; j < COLS; j++){
             to->table[i][j] = from->table[i][j];
@@ -532,37 +509,4 @@ void copy_input(dataframe *from, dataframe *to){
     for (int8 i = 0; i < ROWS; i++)
         to->order[i] = from->order[i];
 
-}
-
-#ifndef CBMC
-void pretty_print(dataframe *df){
-    printf("Output Table:\n");
-    for (int i = 0; i < ROWS; i++){
-        if (df->active_rows[df->order[i]] == 1) {
-            for (int j = 0; j < COLS; j++){
-                if (df->active_cols[j] == 1) {
-                    printf(" [%d]",df->table[df->order[i]][j]);
-                }
-            }
-            printf("\n");
-        }
-    }
-}
-#endif
-
-int main(int argc, char *argv[]) {
-
-    dataframe input;
-    init_input(&input);
-
-    dataframe p[NUMBER_PROGRAMS];
-    for (int i = 0; i < NUMBER_PROGRAMS; i++)
-        copy_input(&input, p + i);
-
-PROGRAM_CALLS
-#ifdef CBMC
-EQUALITY_PROGRAMS
-
-ASSERTIONS
-#endif
 }

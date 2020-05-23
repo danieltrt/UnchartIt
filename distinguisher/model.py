@@ -92,7 +92,6 @@ class YesNoInteractionModel(InteractionModel):
 
         inpt = self.interpreter.extract_input(symbolic_representation, model, input_constraints)
         output = self.interpreter.evaluate(programs_in_a[0], inpt)
-        output2 = self.interpreter.evaluate(programs_in_b[0], inpt)
 
         if self.ask_user(inpt, output) == "y":
             return programs_in_a

@@ -1,53 +1,26 @@
-import os
-
 class Program:
 
-    def __init__(self, path):
+    def __init__(self, path, idx):
+        self.idx = idx
 
         with open(path, "r+") as f:
             self.string = f.read()
 
-    def call(self):
+    def call(self, var):
         pass
 
     def equiv(self, other):
         pass
 
+    def get_input_type(self):
+        pass
+
+    def get_input_vector(self, name, size):
+        pass
+
     def __lt__(self, other):
         pass
 
-class UnchartItProgram(Program):
-    name = "program"
-    end = "("
-    return_value = "int8"
-    equiv_fn = "equiv"
 
-    def __init__(self, path):
-        super().__init__(path)
-        self.current_idx = None
 
-    def get_number(self):
-        first_line = self.string.split(os.linesep)[0]
-        begin = first_line.find(self.name) + len(self.name)
-        end = first_line.find(self.end)-len(self.end) + 1
-        return int(first_line[begin:end])
-
-    def call(self):
-        first_line = self.string.split(os.linesep)[0]
-        begin = first_line.find(self.name)
-        end = first_line.find(self.end)
-        call_string = first_line[begin:end]
-        call_string += "(&p[{}]);".format(self.current_idx)
-
-        return call_string
-
-    def equiv(self, other):
-        var_name = "a{}{}".format(self.get_number(), other.get_number())
-        assignment = "{} {} = {}(&p[{}], &p[{}]);".format(self.return_value, var_name, self.equiv_fn,
-                                                          self.current_idx, other.current_idx)
-
-        return var_name, assignment
-
-    def __lt__(self, other):
-        return self.get_number() < other.get_number()
 

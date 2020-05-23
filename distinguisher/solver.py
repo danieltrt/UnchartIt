@@ -38,5 +38,3 @@ class Solver:
                 if v == '0': break
                 vals[str(abs(int(v)))] = not self.sign(v)
         return vals if found else None
-
-

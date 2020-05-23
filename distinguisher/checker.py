@@ -3,7 +3,6 @@ import time
 import subprocess
 
 
-
 class ModelChecker:
 
     def generate_symbolic_representation(self, programs, input_constraints):
@@ -11,32 +10,35 @@ class ModelChecker:
 
 
 class CBMC(ModelChecker):
-    """ The CBMC requires a template to generate C.
-        The template must implement the is_equiv and not_equiv functions.
-        It must also contain a variable named input."""
 
+    header = """extern void init_input(void* input);
+    extern void copy_input(void* from, void* to);
+    extern int equiv(const void* o1, const void* o2);
+    int is_equiv(int eq) { return eq; }
+    int not_equiv(int eq) { return !eq; }
+    """
     var = "VAR"
     positive_assertion = "assert(is_equiv({}));".format(var)
     negative_assertion = "assert(not_equiv({}));".format(var)
     cbmc_positive_assertion = "return_value_is_equiv"
     cbmc_negative_assertion = "return_value_not_equiv"
     cbmc_input_name = "c main::1::input!0@1#1 "
-    template_assertions = "ASSERTIONS"
-
     n_soft_clauses = 1024
 
     def __init__(self, template):
         self.template = template
 
     def generate_symbolic_representation(self, programs, input_constraints):
-        c_program, equiv_vars = self.template.generate_c(programs, input_constraints)
-        c_program = self.add_assertions(c_program, equiv_vars)
+        c_program = self.template.generate_code(programs, input_constraints)
+        main = self.generate_main(programs)
 
         file_n = round(time.time() * 100)
-        with open("/tmp/cbmc_{}.c".format(file_n), "a+") as f:
-            f.write(c_program)
+        with open("/tmp/cbmc_main_{}.c".format(file_n), "a+") as f:
+            f.write(self.header.replace("    ", "") + os.linesep)
+            f.write(c_program + os.linesep)
+            f.write(main + os.linesep)
 
-        cmd = "cbmc /tmp/cbmc_{}.c --dimacs --object-bits 10".format(file_n)
+        cmd = "cbmc /tmp/cbmc_main_{}.c --dimacs --object-bits 10".format(file_n)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         lns = str(out, encoding='utf-8')
@@ -48,13 +50,35 @@ class CBMC(ModelChecker):
 
         return SymbolicRepresentation(n_vars, n_clauses, self.n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars)
 
-    def add_assertions(self, c_program, equiv_vars):
-        assertions = ""
+    def generate_main(self, programs):
+        main = "int main(int argc, char *argv[]) {" + os.linesep
+
+        main += " " * 4 + programs[0].get_input_type() + " input;" + os.linesep
+        main += " " * 4 + "init_input(&input);" + os.linesep
+        main += " " * 4 + programs[0].get_input_vector("p", len(programs)) + os.linesep
+
+        main += " " * 4 + "for (int i = 0; i < {}; i++)".format(len(programs)) + " {" + os.linesep
+        for i in range(len(programs)):
+            main += " " * 8 + "copy_input(&input, p + i);" + os.linesep
+        main += " " * 4 + "}" + os.linesep
+
+        for i in range(len(programs)):
+            programs[i].idx = i
+            main += " " * 4 + str(programs[i].call("&p[{}]".format(i))) + os.linesep
+
+        equiv_vars = []
+        for i in range(len(programs)):
+            for j in range(i + 1, len(programs)):
+                var_name, assignment = programs[i].equiv(programs[j])
+                main += " " * 4 + assignment + os.linesep
+                equiv_vars += [var_name]
+
         for i in range(len(equiv_vars)):
-            assertions += self.positive_assertion.replace(self.var, equiv_vars[i]) + os.linesep
+            main += " " * 4 + self.positive_assertion.replace(self.var, equiv_vars[i]) + os.linesep
         for i in range(len(equiv_vars)):
-            assertions += self.negative_assertion.replace(self.var, equiv_vars[i]) + os.linesep
-        return c_program.replace(self.template_assertions, assertions)
+            main += " " * 4 + self.negative_assertion.replace(self.var, equiv_vars[i]) + os.linesep
+
+        return main + "}"
 
     def get_dimacs(self, lines):
         while lines[0].find("p cnf ") == -1:
@@ -90,8 +114,6 @@ class CBMC(ModelChecker):
                 line = line[len(self.cbmc_input_name):].split(" ")
                 inpt_vars += line
         return inpt_vars
-
-
 
 
 class SymbolicRepresentation:
