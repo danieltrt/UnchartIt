@@ -5,7 +5,7 @@ from distinguisher.interpreter import *
 
 class InteractionModel:
 
-    def generate_interaction(self, programs, input_constraints):
+    def generate_interaction(self, programs):
         pass
 
     def ask_user(self, inpt, results):
@@ -14,13 +14,13 @@ class InteractionModel:
 
 class OptionsInteractionModel(InteractionModel):
 
-    def __init__(self, model_checker: ModelChecker, solver: Solver, interpreter: Interpreter):
+    def __init__(self, model_checker: ModelChecker, solver: Solver, interpreter: ModelInterpreter):
         self.model_checker = model_checker
         self.solver = solver
         self.interpreter = interpreter
 
-    def generate_interaction(self, programs, input_constraints):
-        symbolic_representation = self.model_checker.generate_symbolic_representation(programs, input_constraints)
+    def generate_interaction(self, programs):
+        symbolic_representation = self.model_checker.generate_symbolic_representation(programs)
         variables = ["-{}".format(el) for el in symbolic_representation.eq_vars]
         symbolic_representation.add_hard_clause(variables)
         for var in variables:
@@ -28,12 +28,14 @@ class OptionsInteractionModel(InteractionModel):
         model = self.solver.run(symbolic_representation)
         if model is None:
             return programs
-        inpt = self.interpreter.extract_input(symbolic_representation, model, input_constraints)
+        inpt = self.interpreter.extract_input(symbolic_representation, model)
         sets = self.get_sets(model, symbolic_representation.eq_vars, programs)
         representatives = {next(iter(el)): el for el in sets}
         results = {}
         for program in representatives:
-            results[program] = self.interpreter.evaluate(program, inpt)
+            idx = programs.index(program)
+            results[program] = self.interpreter.extract_output(symbolic_representation, model, idx)
+
         return list(representatives[self.ask_user(inpt, results)])
 
     def ask_user(self, inpt, results):
@@ -69,14 +71,14 @@ class OptionsInteractionModel(InteractionModel):
 
 class YesNoInteractionModel(InteractionModel):
 
-    def __init__(self, model_checker: ModelChecker, solver: Solver, interpreter: Interpreter):
+    def __init__(self, model_checker: ModelChecker, solver: Solver, interpreter: ModelInterpreter):
 
         self.model_checker = model_checker
         self.solver = solver
         self.interpreter = interpreter
 
-    def generate_interaction(self, programs, input_constraints):
-        symbolic_representation = self.model_checker.generate_symbolic_representation(programs, input_constraints)
+    def generate_interaction(self, programs):
+        symbolic_representation = self.model_checker.generate_symbolic_representation(programs)
         b = self.create_bij_constraints(len(programs), symbolic_representation)
         pA, pB = self.create_group_constraints(len(programs), symbolic_representation, b)
         sumA, sumB = self.create_counters(len(programs), symbolic_representation, pA, pB)
@@ -85,13 +87,13 @@ class YesNoInteractionModel(InteractionModel):
         model = self.solver.run(symbolic_representation)
         programs_in_a = list(map(lambda x: programs[x], list(filter(lambda x: model[pA[x]], [i for i in range(len(programs))]))))
         programs_in_b = list(map(lambda x: programs[x], list(filter(lambda x: model[pB[x]], [i for i in range(len(programs))]))))
-
+        idx = programs.index(programs_in_a[0])
         if len(programs_in_a) == len(programs):
             print("Programs are equal")
             return None
 
-        inpt = self.interpreter.extract_input(symbolic_representation, model, input_constraints)
-        output = self.interpreter.evaluate(programs_in_a[0], inpt)
+        inpt = self.interpreter.extract_input(symbolic_representation, model)
+        output = self.interpreter.extract_output(symbolic_representation, model, idx)
 
         if self.ask_user(inpt, output) == "y":
             return programs_in_a

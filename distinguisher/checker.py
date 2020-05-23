@@ -5,7 +5,7 @@ import subprocess
 
 class ModelChecker:
 
-    def generate_symbolic_representation(self, programs, input_constraints):
+    def generate_symbolic_representation(self, programs):
         pass
 
 
@@ -17,19 +17,19 @@ class CBMC(ModelChecker):
     int is_equiv(int eq) { return eq; }
     int not_equiv(int eq) { return !eq; }
     """
-    var = "VAR"
-    positive_assertion = "assert(is_equiv({}));".format(var)
-    negative_assertion = "assert(not_equiv({}));".format(var)
+    positive_assertion = "assert(is_equiv({}));"
+    negative_assertion = "assert(not_equiv({}));"
     cbmc_positive_assertion = "return_value_is_equiv"
     cbmc_negative_assertion = "return_value_not_equiv"
-    cbmc_input_name = "c main::1::input!0@1#1 "
+    cbmc_input_name = "c main::1::input!0@1#"
+    cbmc_output_name = "c main::1::output!0@1#"
     n_soft_clauses = 1024
 
     def __init__(self, template):
         self.template = template
 
-    def generate_symbolic_representation(self, programs, input_constraints):
-        c_program = self.template.generate_code(programs, input_constraints)
+    def generate_symbolic_representation(self, programs):
+        c_program = self.template.generate_code(programs)
         main = self.generate_main(programs)
 
         file_n = round(time.time() * 100)
@@ -47,35 +47,36 @@ class CBMC(ModelChecker):
         eq_vars = self.get_eq_vars(lns.splitlines())
         neq_vars = self.get_neq_vars(lns.splitlines())
         input_vars = self.get_input_vars(lns.splitlines())
+        output_vars = self.get_output_vars(lns.splitlines(), len(programs))
 
-        return SymbolicRepresentation(n_vars, n_clauses, self.n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars)
+        return SymbolicRepresentation(n_vars, n_clauses, self.n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars, output_vars)
 
     def generate_main(self, programs):
         main = "int main(int argc, char *argv[]) {" + os.linesep
 
         main += " " * 4 + programs[0].get_input_type() + " input;" + os.linesep
         main += " " * 4 + "init_input(&input);" + os.linesep
-        main += " " * 4 + programs[0].get_input_vector("p", len(programs)) + os.linesep
+        main += " " * 4 + programs[0].get_input_type() + " {}[{}];".format("output", len(programs)) + os.linesep
 
         main += " " * 4 + "for (int i = 0; i < {}; i++)".format(len(programs)) + " {" + os.linesep
-        main += " " * 8 + "copy_input(&input, p + i);" + os.linesep
+        main += " " * 8 + "copy_input(&input, output + i);" + os.linesep
         main += " " * 4 + "}" + os.linesep
 
         for i in range(len(programs)):
-            main += " " * 4 + str(programs[i].call("&p[{}]".format(i))) + os.linesep
+            main += " " * 4 + str(programs[i].call("&output[{}]".format(i))) + os.linesep
 
         equiv_vars = []
         for i in range(len(programs)):
             for j in range(i + 1, len(programs)):
                 var_name = "a{}{}".format(programs[i].idx, programs[j].idx)
-                assignment = "int {} = equiv(&p[{}], &p[{}]);".format(var_name, i, j)
+                assignment = "int {} = equiv(&output[{}], &output[{}]);".format(var_name, i, j)
                 main += " " * 4 + assignment + os.linesep
                 equiv_vars += [var_name]
 
         for i in range(len(equiv_vars)):
-            main += " " * 4 + self.positive_assertion.replace(self.var, equiv_vars[i]) + os.linesep
+            main += " " * 4 + self.positive_assertion.format(equiv_vars[i]) + os.linesep
         for i in range(len(equiv_vars)):
-            main += " " * 4 + self.negative_assertion.replace(self.var, equiv_vars[i]) + os.linesep
+            main += " " * 4 + self.negative_assertion.format(equiv_vars[i]) + os.linesep
 
         return main + "}"
 
@@ -107,17 +108,35 @@ class CBMC(ModelChecker):
         return sorted(neq_vars, key=int)
 
     def get_input_vars(self, lines):
-        inpt_vars = []
+        inpt_vars = {}
         for line in lines:
             if line.find(self.cbmc_input_name) != -1:
                 line = line[len(self.cbmc_input_name):].split(" ")
-                inpt_vars += line
-        return inpt_vars
+                inpt_vars[int(line[0])] = line[1:]
+
+        inputs = inpt_vars[max(inpt_vars.keys())]
+        return inputs
+
+    def get_output_vars(self, lines, n_outputs):
+        output_vars = {}
+        for line in lines:
+            if line.find(self.cbmc_output_name) != -1:
+                line = line[len(self.cbmc_output_name):].split(" ")
+                output_vars[int(line[0])] = line[1:]
+
+        output_vars = output_vars[max(output_vars.keys())]
+        vars_per_output = int(len(output_vars) / n_outputs)
+        outputs = [[] for _ in range(n_outputs)]
+        for i in range(n_outputs):
+            for j in range(vars_per_output):
+                outputs[i] += [output_vars[i*vars_per_output + j]]
+
+        return outputs
 
 
 class SymbolicRepresentation:
 
-    def __init__(self, n_vars, n_clauses, n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars):
+    def __init__(self, n_vars, n_clauses, n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars, output_vars):
         self.n_vars = n_vars
         self.n_clauses = n_clauses
         self.n_soft_clauses = n_soft_clauses
@@ -125,6 +144,7 @@ class SymbolicRepresentation:
         self.eq_vars = eq_vars
         self.neq_vars = neq_vars
         self.input_vars = input_vars
+        self.output_vars = output_vars
 
     def add_variable(self):
         self.n_vars += 1

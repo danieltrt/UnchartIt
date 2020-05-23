@@ -1,5 +1,5 @@
 void program2(dataframe* df) {
     group_by(df,0);
     count(df);
-    top_n(df,1,10);
+    arrange(df,descending,1);
 }

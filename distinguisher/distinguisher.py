@@ -1,16 +1,17 @@
 from distinguisher.model import *
+from distinguisher.program import *
+from typing import List
 
 
 class Distinguisher:
 
-    def __init__(self, interaction_model: InteractionModel, programs, input_constraints):
+    def __init__(self, interaction_model: InteractionModel, programs: List[CProgram]):
         self.interaction_model = interaction_model
         self.programs = programs
-        self.input_constraints = input_constraints
 
     def distinguish(self):
         while True:
-            programs = self.interaction_model.generate_interaction(self.programs, self.input_constraints)
+            programs = self.interaction_model.generate_interaction(self.programs)
             if programs == self.programs or len(programs) == 1:
                 return programs
             self.programs = programs
