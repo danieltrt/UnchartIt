@@ -1,5 +1,5 @@
 from distinguisher.distinguisher import *
-from distinguisher.interpreter import *
+from distinguisher.model import *
 from distinguisher.program import *
 from argparse import *
 from os import listdir
