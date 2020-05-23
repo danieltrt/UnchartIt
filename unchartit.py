@@ -1,4 +1,3 @@
-from distinguisher.template import *
 from distinguisher.distinguisher import *
 from distinguisher.interpreter import *
 from distinguisher.program import *
