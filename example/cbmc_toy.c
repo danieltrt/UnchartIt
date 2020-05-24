@@ -6,7 +6,7 @@ int equiv(const void* o1, const void* o2) {
     pair* p1 = (pair*) o1;
     pair* p2 = (pair*) o2;
 
-    return p1->x == p2->x && p1->y == p1->y;
+    return p1->x == p2->x && p1->y == p2->y;
 }
 
 void init_input(void *input) {
