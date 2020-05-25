@@ -94,7 +94,6 @@ if __name__ == "__main__":
 
     interpreter = ToyInterpreter()
 
-    # Generic
     model_checker = CBMC(template)
     solver = Solver("Open-LinSBPS")
     interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
