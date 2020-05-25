@@ -1,0 +1,7 @@
+{
+  "programs": "./polls/example/instance1_programs/",
+  "cbmc_template": "./polls/example/cbmc_template.c",
+  "interpreter_template": "./example/interpreter_template.c",
+  "input_constraints": ["__CPROVER_assume(((df->table[i][0] >= -1 && df->table[i][0] <= 10)));\n", 5, 2, 8, 24],
+  "solver": "Open-LinSBPS"
+}

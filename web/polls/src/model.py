@@ -1,7 +1,7 @@
-from distinguisher.logger import get_logger
+from .logger import get_logger
 import os
 
-logger = get_logger("distinguisher.model")
+logger = get_logger("polls.model")
 
 class InteractionModel:
 
@@ -38,21 +38,11 @@ class OptionsInteractionModel(InteractionModel):
             idx = programs.index(program)
             results[program] = self.interpreter.extract_output(symbolic_representation, model, idx)
 
-        return list(representatives[self.ask_user(inpt, results)])
+        return self.ask_user(inpt, results)
 
     def ask_user(self, inpt, results):
-        print("Consider the following input:")
-        print(inpt.display(), os.linesep)
-        print("Select the corresponding output:")
         programs = [program for program in results]
-        count = 0
-        for program in programs:
-            print("Output ({})".format(count))
-            print(results[program].display(), os.linesep)
-            count += 1
-
-        answer = int(input())
-        return programs[answer]
+        return inpt, [results[program] for program in programs]
 
     def get_sets(self, model, eq_vars, programs):
         sets = [{programs[i]} for i in range(len(programs))]
@@ -101,16 +91,10 @@ class YesNoInteractionModel(InteractionModel):
         inpt = self.interpreter.extract_input(symbolic_representation, model)
         output = self.interpreter.extract_output(symbolic_representation, model, idx)
 
-        if self.ask_user(inpt, output) == "y":
-            return programs_in_a
-        return programs_in_b
+        return self.ask_user(inpt, output)
 
     def ask_user(self, inpt, results):
-        print("Consider the following input:")
-        print(inpt.display())
-        print("Is the following output correct (y/n):")
-        print(results.display())
-        return input()
+        return inpt, results
 
     def create_bij_constraints(self, n_progs, symbolic_representation):
         count = 0

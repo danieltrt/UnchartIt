@@ -1,35 +1,79 @@
-from distinguisher.logger import get_logger
+from .logger import get_logger
 import os
 import time
 import subprocess
+from os import linesep
 
 
-logger = get_logger("distinguisher.checker")
+logger = get_logger("polls.checker")
+
+
+class SymbolicRepresentation:
+
+    def __init__(self, n_vars, n_clauses, n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars, output_vars):
+        self.n_vars = n_vars
+        self.n_clauses = n_clauses
+        self.n_soft_clauses = n_soft_clauses
+        self.inc_dimacs = inc_dimacs + os.linesep
+        self.eq_vars = eq_vars
+        self.neq_vars = neq_vars
+        self.input_vars = input_vars
+        self.output_vars = output_vars
+
+    def add_variable(self):
+        self.n_vars += 1
+        return str(self.n_vars)
+
+    def add_hard_clause(self, variables):
+        clause = "{} ".format(self.n_soft_clauses + 1)
+        for var in variables:
+            clause += "{} ".format(var)
+        clause += "0{}".format(os.linesep)
+
+        self.n_clauses += 1
+        self.inc_dimacs += clause
+
+    def add_soft_clause(self, weight, variables):
+        clause = "{} ".format(weight)
+        for var in variables:
+            clause += "{} ".format(var)
+        clause += "0{}".format(os.linesep)
+
+        self.n_clauses += 1
+        self.inc_dimacs += clause
+
+    def get_dimacs(self):
+        header = "p wcnf {} {} {}".format(self.n_vars, self.n_clauses, self.n_soft_clauses + 1) + os.linesep
+        return header + self.inc_dimacs
+
+    def create_totalizer(self, l, u, p):
+        ret = [self.add_variable()]
+        ending = [self.add_variable()]
+        self.add_hard_clause([ret[0]])
+        self.add_hard_clause(['-' + ending[0]])
+        if l >= u:
+            return ret + [p[l]] + ending
+
+        left_vars = self.create_totalizer(l, l + (u-l)//2, p)  #[q]
+        right_vars = self.create_totalizer(l + (u-l)//2 + 1, u, p) #[r]
+
+        for i in range(l, u+1):
+            ret += [self.add_variable()]
+
+        ret += ending
+
+        for i in range(len(left_vars)-1):
+            for j in range(len(right_vars)-1):
+                self.add_hard_clause(['-' + left_vars[i], '-' + right_vars[j], ret[i+j]]) #[p]
+                self.add_hard_clause([left_vars[i+1], right_vars[j+1], '-' + ret[i+j+1]]) #[p]
+
+        return ret
+
 
 class ModelChecker:
 
     def generate_symbolic_representation(self, programs):
         raise NotImplementedError
-
-
-class ModelInterpreter:
-
-    def extract_input(self, symbolic_representation, model):
-        raise NotImplementedError
-
-    def extract_output(self, symbolic_representation, model, idx):
-        raise NotImplementedError
-
-
-class Template:
-
-    def __init__(self, path_to_impl):
-        f = open(path_to_impl, "r")
-        self.template = f.read()
-        f.close()
-
-    def genarate_code(self, programs, input_constraints):
-        pass
 
 
 class CBMC(ModelChecker):
@@ -66,7 +110,7 @@ class CBMC(ModelChecker):
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         lns = str(out, encoding='utf-8')
-        logger.info("CBMC returned.")
+        logger.info("CBMC return code {}.".format(p.returncode))
 
 
         n_vars, n_clauses, inc_dimacs = self.get_dimacs(lns.splitlines())
@@ -160,63 +204,41 @@ class CBMC(ModelChecker):
         return outputs
 
 
-class SymbolicRepresentation:
+class Template:
 
-    def __init__(self, n_vars, n_clauses, n_soft_clauses, inc_dimacs, eq_vars, neq_vars, input_vars, output_vars):
-        self.n_vars = n_vars
-        self.n_clauses = n_clauses
-        self.n_soft_clauses = n_soft_clauses
-        self.inc_dimacs = inc_dimacs + os.linesep
-        self.eq_vars = eq_vars
-        self.neq_vars = neq_vars
-        self.input_vars = input_vars
-        self.output_vars = output_vars
+    def __init__(self, path_to_impl):
+        f = open(path_to_impl, "r")
+        self.template = f.read()
+        f.close()
 
-    def add_variable(self):
-        self.n_vars += 1
-        return str(self.n_vars)
+    def genarate_code(self, programs, input_constraints):
+        pass
 
-    def add_hard_clause(self, variables):
-        clause = "{} ".format(self.n_soft_clauses + 1)
-        for var in variables:
-            clause += "{} ".format(var)
-        clause += "0{}".format(os.linesep)
 
-        self.n_clauses += 1
-        self.inc_dimacs += clause
+class UnchartItTemplate(Template):
 
-    def add_soft_clause(self, weight, variables):
-        clause = "{} ".format(weight)
-        for var in variables:
-            clause += "{} ".format(var)
-        clause += "0{}".format(os.linesep)
+    template_n_programs = "N_PROGRAMS"
+    template_init_inputs = "INPUT_CONSTRAINTS"
+    template_programs = "PROGRAM_STRINGS"
+    template_n_cols = "N_COLS"
+    template_n_rows = "N_ROWS"
 
-        self.n_clauses += 1
-        self.inc_dimacs += clause
+    def __init__(self, path, input_constraints):
+        super().__init__(path)
+        self.init_input = input_constraints[0]
+        self.n_rows = input_constraints[1]
+        self.n_cols = input_constraints[2]
 
-    def get_dimacs(self):
-        header = "p wcnf {} {} {}".format(self.n_vars, self.n_clauses, self.n_soft_clauses + 1) + os.linesep
-        return header + self.inc_dimacs
+    def generate_code(self, programs):
+        n_programs = str(len(programs))
+        programs_strings = ""
 
-    def create_totalizer(self, l, u, p):
-        ret = [self.add_variable()]
-        ending = [self.add_variable()]
-        self.add_hard_clause([ret[0]])
-        self.add_hard_clause(['-' + ending[0]])
-        if l >= u:
-            return ret + [p[l]] + ending
+        for program in programs:
+            programs_strings += program.string + linesep
 
-        left_vars = self.create_totalizer(l, l + (u-l)//2, p)  #[q]
-        right_vars = self.create_totalizer(l + (u-l)//2 + 1, u, p) #[r]
-
-        for i in range(l, u+1):
-            ret += [self.add_variable()]
-
-        ret += ending
-
-        for i in range(len(left_vars)-1):
-            for j in range(len(right_vars)-1):
-                self.add_hard_clause(['-' + left_vars[i], '-' + right_vars[j], ret[i+j]]) #[p]
-                self.add_hard_clause([left_vars[i+1], right_vars[j+1], '-' + ret[i+j+1]]) #[p]
-
-        return ret
+        template = self.template.replace(self.template_n_programs, n_programs)
+        template = template.replace(self.template_init_inputs, self.init_input)
+        template = template.replace(self.template_n_rows, str(self.n_rows))
+        template = template.replace(self.template_n_cols, str(self.n_cols))
+        template = template.replace(self.template_programs, programs_strings)
+        return template

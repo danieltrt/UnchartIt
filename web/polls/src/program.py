@@ -30,3 +30,10 @@ class CProgram:
         begin = len(self.output_type) + 1
         end = first_line.find("(")
         return first_line[begin:end]
+
+
+class UnchartItProgram(CProgram):
+
+    def __init__(self, path):
+        with open(path, "r+") as f:
+            super().__init__(f.read(), "void", "dataframe")
