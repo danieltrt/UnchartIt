@@ -1,7 +1,10 @@
+from distinguisher.logger import get_logger
 import os
 import time
 import subprocess
 
+
+logger = get_logger("distinguisher.checker")
 
 class ModelChecker:
 
@@ -58,10 +61,13 @@ class CBMC(ModelChecker):
             f.write(c_program + os.linesep)
             f.write(main + os.linesep)
 
+        logger.info("Now running CBMC...")
         cmd = "cbmc /tmp/cbmc_main_{}.c --dimacs --object-bits 10".format(file_n)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         lns = str(out, encoding='utf-8')
+        logger.info("CBMC returned.")
+
 
         n_vars, n_clauses, inc_dimacs = self.get_dimacs(lns.splitlines())
         eq_vars = self.get_eq_vars(lns.splitlines())

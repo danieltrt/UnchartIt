@@ -1,6 +1,7 @@
-from distinguisher.checker import *
-from distinguisher.solver import *
+from distinguisher.logger import get_logger
+import os
 
+logger = get_logger("distinguisher.model")
 
 class InteractionModel:
 
@@ -19,6 +20,7 @@ class OptionsInteractionModel(InteractionModel):
         self.interpreter = interpreter
 
     def generate_interaction(self, programs):
+        logger.info("Generating interaction.")
         symbolic_representation = self.model_checker.generate_symbolic_representation(programs)
         variables = ["-{}".format(el) for el in symbolic_representation.eq_vars]
         symbolic_representation.add_hard_clause(variables)
@@ -77,6 +79,7 @@ class YesNoInteractionModel(InteractionModel):
         self.interpreter = interpreter
 
     def generate_interaction(self, programs):
+        logger.info("Generating interaction.")
         symbolic_representation = self.model_checker.generate_symbolic_representation(programs)
         b = self.create_bij_constraints(len(programs), symbolic_representation)
         pA, pB = self.create_group_constraints(len(programs), symbolic_representation, b)

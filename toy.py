@@ -1,9 +1,13 @@
 from distinguisher.distinguisher import *
+from distinguisher.checker import *
 from distinguisher.model import *
 from distinguisher.program import *
+from distinguisher.solver import *
 from os import linesep
 from sys import byteorder
 
+logger = get_logger("distinguisher")
+logger.setLevel("DEBUG")
 
 class ToyTemplate(Template):
     template_init_inputs = "INPUT_CONSTRAINTS"

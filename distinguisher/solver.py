@@ -1,6 +1,8 @@
 import subprocess
 import time
+from distinguisher.logger import get_logger
 
+logger = get_logger("distinguisher.solver")
 
 class Solver:
 
@@ -14,11 +16,13 @@ class Solver:
             f.write(dimacs)
             f.flush()
 
+        logger.info("Now running {}...".format(self.name))
         cmd = "{} /tmp/{}_{}.in".format(self.name, self.name, file_n)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
-        lns = str(out, encoding='utf-8')
+        logger.info("Solver returned.")
 
+        lns = str(out, encoding='utf-8')
         model = self.get_model(lns.splitlines())
         return model
 
