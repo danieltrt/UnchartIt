@@ -96,8 +96,8 @@ if __name__ == "__main__":
 
     # Generic
     model_checker = CBMC(template)
-    solver = Solver("open-wbo")
-    interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
+    solver = Solver("Open-LinSBPS")
+    interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
 
     dst = Distinguisher(interaction_model, programs)
     dst.distinguish()

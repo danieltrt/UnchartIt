@@ -158,7 +158,7 @@ if __name__ == "__main__":
     # Generic
     model_checker = CBMC(template)
     solver = Solver(cmd_args.solver)
-    interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
+    interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
 
     dst = Distinguisher(interaction_model, programs)
     dst.distinguish()

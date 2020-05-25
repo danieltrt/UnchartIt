@@ -20,7 +20,7 @@ class OptionsInteractionModel(InteractionModel):
         self.interpreter = interpreter
 
     def generate_interaction(self, programs):
-        logger.info("Generating interaction.")
+        logger.info("Generating OPTIONS interaction.")
         symbolic_representation = self.model_checker.generate_symbolic_representation(programs)
         variables = ["-{}".format(el) for el in symbolic_representation.eq_vars]
         symbolic_representation.add_hard_clause(variables)
@@ -31,6 +31,7 @@ class OptionsInteractionModel(InteractionModel):
             return programs
         inpt = self.interpreter.extract_input(symbolic_representation, model)
         sets = self.get_sets(model, symbolic_representation.eq_vars, programs)
+        logger.info("Model has {} groups: {}.".format(len(sets), [[str(p) for p in s] for s in sets]))
         representatives = {next(iter(el)): el for el in sets}
         results = {}
         for program in representatives:
@@ -79,7 +80,7 @@ class YesNoInteractionModel(InteractionModel):
         self.interpreter = interpreter
 
     def generate_interaction(self, programs):
-        logger.info("Generating interaction.")
+        logger.info("Generating YES/NO interaction.")
         symbolic_representation = self.model_checker.generate_symbolic_representation(programs)
         b = self.create_bij_constraints(len(programs), symbolic_representation)
         pA, pB = self.create_group_constraints(len(programs), symbolic_representation, b)
@@ -89,6 +90,9 @@ class YesNoInteractionModel(InteractionModel):
         model = self.solver.run(symbolic_representation)
         programs_in_a = list(map(lambda x: programs[x], list(filter(lambda x: model[pA[x]], [i for i in range(len(programs))]))))
         programs_in_b = list(map(lambda x: programs[x], list(filter(lambda x: model[pB[x]], [i for i in range(len(programs))]))))
+        logger.info("Model has {} programs in group A: {}.".format(len(programs_in_a), [str(p) for p in programs_in_a]))
+        logger.info("Model has {} programs in group B: {}.".format(len(programs_in_b), [str(p) for p in programs_in_b]))
+
         idx = programs.index(programs_in_a[0])
         if len(programs_in_a) == len(programs):
             print("Programs are equal")
@@ -103,9 +107,9 @@ class YesNoInteractionModel(InteractionModel):
 
     def ask_user(self, inpt, results):
         print("Consider the following input:")
-        print(inpt.display(), os.linesep)
+        print(inpt.display())
         print("Is the following output correct (y/n):")
-        print(results.display(), os.linesep)
+        print(results.display())
         return input()
 
     def create_bij_constraints(self, n_progs, symbolic_representation):

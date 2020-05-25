@@ -24,3 +24,9 @@ class CProgram:
 
     def __lt__(self, other):
         return self.idx < other.idx
+
+    def __str__(self):
+        first_line = self.string.split(os.linesep)[0]
+        begin = len(self.output_type) + 1
+        end = first_line.find("(")
+        return first_line[begin:end]

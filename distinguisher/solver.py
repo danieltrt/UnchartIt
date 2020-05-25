@@ -20,7 +20,7 @@ class Solver:
         cmd = "{} /tmp/{}_{}.in".format(self.name, self.name, file_n)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
-        logger.info("Solver returned.")
+        logger.info("{} returned.".format(self.name))
 
         lns = str(out, encoding='utf-8')
         model = self.get_model(lns.splitlines())
