@@ -9,6 +9,7 @@ class Table:
         self.order = order
         self.n_rows = sum(active_rows)
         self.n_cols = sum(active_cols) + 1
+        self.col_names = ["COL{}".format(i) for i in range(sum(active_cols))]
 
     def display(self):
         string = ""
@@ -19,6 +20,26 @@ class Table:
                         string += " [" + str(self.table[self.order[i]][j]) + "]"
                 string += "\n"
         return string[:-1]
+
+    def get_active_cols(self):
+        cols = []
+        for j in range(len(self.active_cols)):
+            col = []
+            if self.active_cols[j] == 1:
+                for i in range(len(self.active_rows)):
+                    if self.active_rows[self.order[i]] == 1:
+                        col += [self.table[self.order[i]][j]]
+            if not col: continue
+            if col[0] >= 100:
+                col = list(map(lambda x: x / 100, col))
+            cols += [col]
+        return cols
+
+    def get_active_rows(self):
+        return list(map(list, zip(*self.get_active_cols())))
+
+    def get_header(self):
+        return self.col_names
 
 
 class ModelInterpreter:

@@ -1,0 +1,25 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+
+
+<div class="container">
+    <div class="content">
+
+        <h1>Consider the following input</h1>
+        <span>{{ question.question_text }}</span>
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+    </div>
+        <div class="content">
+        <form action="{% url 'polls:vote' question.id %}" method="post">
+        {% csrf_token %}
+        {% for choice in question.choice_set.all %}
+            <div class="option">
+                <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+                <label style="padding: 5px" for="choice{{ forloop.counter }}"></label> <img src="/media/{{choice.choice_text}}" />
+            </div><br>
+        {% endfor %}
+            <div class="option"> <input type="submit" value="Submit"> </div>
+        </form>
+    </div>
+</div>

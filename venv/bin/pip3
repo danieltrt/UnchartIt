@@ -1,4 +1,4 @@
-#!/home/blue/PycharmProjects/Distinguisher/venv/bin/python3
+#!/Users/daniel/Desktop/Dev.nosync/distinguisher/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

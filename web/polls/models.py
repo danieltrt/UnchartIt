@@ -4,8 +4,6 @@ from django.urls import reverse
 
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
-    publish_date = models.CharField(max_length=200, null=True, blank=True)
-    choice_text = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.question_text

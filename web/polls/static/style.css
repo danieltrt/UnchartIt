@@ -1,0 +1,14 @@
+.my-auto {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+img{
+    max-width: 300px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* center items vertically, in this case */
+}

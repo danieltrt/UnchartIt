@@ -1,5 +1,6 @@
 from .logger import get_logger
 import os
+from .utils import PlotGenerator
 
 logger = get_logger("polls.model")
 
@@ -18,6 +19,7 @@ class OptionsInteractionModel(InteractionModel):
         self.model_checker = model_checker
         self.solver = solver
         self.interpreter = interpreter
+        self.plot_gen = PlotGenerator()
 
     def generate_interaction(self, programs):
         logger.info("Generating OPTIONS interaction.")
@@ -42,7 +44,7 @@ class OptionsInteractionModel(InteractionModel):
 
     def ask_user(self, inpt, results):
         programs = [program for program in results]
-        return inpt, [results[program] for program in programs]
+        return inpt, [self.plot_gen.gen_bar_plot(results[program], "y") for program in programs]
 
     def get_sets(self, model, eq_vars, programs):
         sets = [{programs[i]} for i in range(len(programs))]
@@ -64,10 +66,10 @@ class OptionsInteractionModel(InteractionModel):
 class YesNoInteractionModel(InteractionModel):
 
     def __init__(self, model_checker, solver, interpreter):
-
         self.model_checker = model_checker
         self.solver = solver
         self.interpreter = interpreter
+        self.plot_gen = PlotGenerator()
 
     def generate_interaction(self, programs):
         logger.info("Generating YES/NO interaction.")
@@ -94,7 +96,7 @@ class YesNoInteractionModel(InteractionModel):
         return self.ask_user(inpt, output)
 
     def ask_user(self, inpt, results):
-        return inpt, results
+        return inpt, [self.plot_gen.gen_bar_plot(results, "y")]
 
     def create_bij_constraints(self, n_progs, symbolic_representation):
         count = 0

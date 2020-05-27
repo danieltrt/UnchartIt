@@ -21,23 +21,60 @@ logger = get_logger("polls")
 logger.setLevel("DEBUG")
 
 
+def load_dst():
+    with open("./polls/example/instance1.json") as f:
+        data = load(f)
+    # UnchartIt specific
+    logger.debug("Loading programs.")
+    programs = []
+    programs_paths = [data['programs'] + f for f in listdir(data['programs'])]
+    for program_path in programs_paths:
+        programs += [UnchartItProgram(program_path)]
+
+    logger.debug("Loading CBMC template.")
+    template = UnchartItTemplate(data["cbmc_template"], data['input_constraints'])
+    interpreter = UnchartItInterpreter(data['input_constraints'])
+
+    # Generic
+    model_checker = CBMC(template)
+    solver = Solver("open-wbo")
+    interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
+
+    return Distinguisher(interaction_model, programs)
+
+
+dst = load_dst()
+
+
 def index(request):
-    latest_question_list = Question.objects.order_by('-publish_date')[:5]
-    context = {'latest_question_list': latest_question_list}
-    return render(request, 'index.html', context)
+    inpt, output = dst.distinguish()
+
+    question = Question(id=None, question_text=inpt)
+    question.save()
+
+    for out in output:
+        choice = Choice(id=None, question_text=question, choice_text=out)
+        choice.save()
+
+    return render(request, 'yesno.html', {
+        'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
+    })
 
 
-def detail(request, question_id):
-    try:
-        question = Question.objects.get(pk=question_id)
-    except Question.DoesNotExist:
-        raise Http404("Question does not exist")
-    return render(request, 'detail.html', {'question': question})
+def options(request):
+    inpt, output = dst.distinguish()
 
+    question = Question(id=None, question_text=inpt)
+    question.save()
 
-def results(request, question_id):
-    response = "You're looking at the results of question %s."
-    return HttpResponse(response % question_id)
+    for out in output:
+        choice = Choice(id=None, question_text=question, choice_text=out)
+        choice.save()
+
+    return render(request, 'yesno.html', {
+        'question': question, "header": ["lol", "lol2"], "rows": [[1,2],[3,2]]
+    })
+
 
 
 def vote(request, question_id):
@@ -46,7 +83,7 @@ def vote(request, question_id):
         selected_choice = question.choice_set.get(pk=request.POST['choice'])
     except (KeyError, Choice.DoesNotExist):
         # Redisplay the question voting form.
-        return render(request, 'detail.html', {
+        return render(request, 'options.html', {
             'question': question,
             'error_message': "You didn't select a choice.",
         })
@@ -56,32 +93,7 @@ def vote(request, question_id):
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
-        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+        return HttpResponseRedirect(reverse('polls:index'))
 
 
-def create_poll(request):
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = QuestionForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            instance = Question(**form.cleaned_data)
-            instance.save()
 
-            instance2 = Choice(id=None, question_text=instance, choice_text= form.cleaned_data['choice_text'])
-            instance2.save()
-            instance2 = Choice(id=None, question_text=instance, choice_text= form.cleaned_data['choice_text'])
-            instance2.save()
-            instance2 = Choice(id=None, question_text=instance, choice_text= form.cleaned_data['choice_text'])
-            instance2.save()
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            return HttpResponseRedirect('/polls')
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = QuestionForm()
-
-    return render(request, 'form.html', {'form': form})
