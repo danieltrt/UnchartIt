@@ -1,25 +1,60 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+<main role="main">
+    <section style="background-color: white" class="jumbotron text-center">
+        <div class="container">
+            <h4 class="jumbotron-heading">Consider the
+                following
+                input table:</h4>
+            <br>
+            <div class="justify-content-center" style="width: 75%; margin: auto; display: flex;">
+                <table style="align-self: center; text-align: center;"
+                       class="table table-striped table-hover table-bordered table-responsive-sm table-fit">
+                    <thead class="thead-dark">
+                    <tr>
+                        {% for k in header %}
+                        <th>{{k}}</th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for r in rows %}
+                    <tr>
+                        {% for c in r %}
+                        <td>{{c}}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <br>
+            <h4 class="jumbotron-heading">Select the corresponding output below.</h4>
+        </div>
+    </section>
+    <div class="album py-5 bg-light">
+        <div class="container">
+            <div class="row">
 
+                {% for choice in question.choice_set.all %}
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm">
+                        <img class="mx-auto d-block card-img-top" width="100%" src="/media/{{choice.choice_text}}"/>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <form style="margin: auto" action="{% url 'polls:vote' question.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button name="choice" id="choice" value="{{ choice.id }}" type="submit" class="btn btn-sm btn-outline-secondary">This one!</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<div class="container">
-    <div class="content">
+                {% endfor %}
 
-        <h1>Consider the following input</h1>
-        <span>{{ question.question_text }}</span>
-        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
+            </div>
+        </div>
     </div>
-        <div class="content">
-        <form action="{% url 'polls:vote' question.id %}" method="post">
-        {% csrf_token %}
-        {% for choice in question.choice_set.all %}
-            <div class="option">
-                <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
-                <label style="padding: 5px" for="choice{{ forloop.counter }}"></label> <img src="/media/{{choice.choice_text}}" />
-            </div><br>
-        {% endfor %}
-            <div class="option"> <input type="submit" value="Submit"> </div>
-        </form>
-    </div>
-</div>
+</main>

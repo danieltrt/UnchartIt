@@ -2,6 +2,10 @@ from sys import byteorder
 
 
 class Table:
+
+    text_strings = {-1: "NA", 0: "''", 1: "Google", 2: "Microsoft", 3: "Apple", 4: "Lehman Brothers",
+                    5: "JP Morgan", 6: "AIG", 7: "Deutsche Bank", 8: "General Motors", 9: "Santander"}
+
     def __init__(self, table, active_rows, active_cols, order):
         self.table = table
         self.active_rows = active_rows
@@ -33,13 +37,19 @@ class Table:
             if col[0] >= 100:
                 col = list(map(lambda x: x / 100, col))
             cols += [col]
+
+        cols[0] = list(map(lambda x: self.text_strings[x], cols[0]))
         return cols
 
     def get_active_rows(self):
-        return list(map(list, zip(*self.get_active_cols())))
+        rows = list(map(list, zip(*self.get_active_cols())))
+        return rows
 
     def get_header(self):
         return self.col_names
+
+    def get_maximum(self):
+        return max(self.get_active_cols()[-1])
 
 
 class ModelInterpreter:

@@ -38,23 +38,32 @@ def load_dst():
     # Generic
     model_checker = CBMC(template)
     solver = Solver("open-wbo")
-    interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
+    interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
 
     return Distinguisher(interaction_model, programs)
 
 
 dst = load_dst()
+options_v = {}
+selected_choice = None
+programs = None
 
 
 def index(request):
-    inpt, output = dst.distinguish()
+    if selected_choice is not None:
+        inpt, output, programs = dst.distinguish(options[selected_choice.choice_text])
+    else:
+        inpt, output, programs = dst.distinguish()
 
-    question = Question(id=None, question_text=inpt)
-    question.save()
+        question = Question(id=None, question_text=inpt)
+        question.save()
 
-    for out in output:
-        choice = Choice(id=None, question_text=question, choice_text=out)
-        choice.save()
+        count = 0
+        for out in output:
+            choice = Choice(id=None, question_text=question, choice_text=out)
+            choice.save()
+            options[choice.choice_text] = programs[count]
+            count += 1
 
     return render(request, 'yesno.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
@@ -62,24 +71,31 @@ def index(request):
 
 
 def options(request):
-    inpt, output = dst.distinguish()
+    global options_v
+    if selected_choice is not None:
+        inpt, output, programs = dst.distinguish(list(options_v[selected_choice.choice_text]))
+    else:
+        inpt, output, programs = dst.distinguish()
 
-    question = Question(id=None, question_text=inpt)
-    question.save()
+        question = Question(id=None, question_text=inpt)
+        question.save()
 
-    for out in output:
-        choice = Choice(id=None, question_text=question, choice_text=out)
-        choice.save()
+        count = 0
+        for out in output:
+            choice = Choice(id=None, question_text=question, choice_text=out)
+            choice.save()
+            options_v[choice.choice_text] = programs[count]
+            count += 1
 
-    return render(request, 'yesno.html', {
-        'question': question, "header": ["lol", "lol2"], "rows": [[1,2],[3,2]]
+    return render(request, 'options.html', {
+        'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
-
 
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     try:
+        global selected_choice
         selected_choice = question.choice_set.get(pk=request.POST['choice'])
     except (KeyError, Choice.DoesNotExist):
         # Redisplay the question voting form.

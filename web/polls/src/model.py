@@ -40,11 +40,13 @@ class OptionsInteractionModel(InteractionModel):
             idx = programs.index(program)
             results[program] = self.interpreter.extract_output(symbolic_representation, model, idx)
 
-        return self.ask_user(inpt, results)
+        return self.ask_user(inpt, results) + (sets,)
 
     def ask_user(self, inpt, results):
         programs = [program for program in results]
-        return inpt, [self.plot_gen.gen_bar_plot(results[program], "y") for program in programs]
+        maximum = [results[program].get_maximum() for program in programs]
+
+        return inpt, [self.plot_gen.gen_bar_plot(results[program], "OPTIONS", max(maximum)) for program in programs]
 
     def get_sets(self, model, eq_vars, programs):
         sets = [{programs[i]} for i in range(len(programs))]
@@ -93,10 +95,10 @@ class YesNoInteractionModel(InteractionModel):
         inpt = self.interpreter.extract_input(symbolic_representation, model)
         output = self.interpreter.extract_output(symbolic_representation, model, idx)
 
-        return self.ask_user(inpt, output)
+        return self.ask_user(inpt, output), (programs_in_a, programs_in_b)
 
     def ask_user(self, inpt, results):
-        return inpt, [self.plot_gen.gen_bar_plot(results, "y")]
+        return inpt, [self.plot_gen.gen_bar_plot(results, "YesNo", results.get_maximum())]
 
     def create_bij_constraints(self, n_progs, symbolic_representation):
         count = 0
