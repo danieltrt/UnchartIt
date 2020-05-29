@@ -37,7 +37,7 @@ class PlotGenerator:
     def gen_bar_plot(self, table, title, maximum):
         self.fig_n += 1
         self.n += 1
-        plt.figure(figsize=(6.666, 5), dpi=300)
+        plt.figure(figsize=(8, 6), dpi=300)
         plt.tight_layout()
 
         cols = table.get_active_cols()
@@ -51,8 +51,9 @@ class PlotGenerator:
         plt.xticks(y_pos, cols[0], fontsize=14)
         plt.yticks(np.arange(0, (5.5/5)*maximum, step=maximum/5), fontsize=14)
         plt.ylim(bottom=0, top=(5.5/5)*maximum)
-        plt.xlabel(table.col_names[0], fontsize=14)
-        plt.ylabel(table.col_names[1], fontsize=14)
+
+        plt.xlabel(table.col_names[0], fontsize=14, labelpad=15)
+        plt.ylabel(table.col_names[1], fontsize=14, labelpad=15)
         plt.title(title)
 
         file_path = os.path.dirname(__file__) + "/../../media/{}.png".format(self.fig_n)

@@ -31,18 +31,18 @@
         <div class="col-md-2 my-auto"></div>
         <div class="col-md-5 my-auto">
             <div style="text-align: center; padding-top: 10px" class="justify-content-center"><h6>Is the following output chart correct?</h6></div>
-            <form action="{% url 'polls:vote' question.id %}" method="post">
+            <form action="{% url 'polls:submit' question.id %}" method="post">
             {% csrf_token %}
             {% for choice in question.choice_set.all %}
                 <div class="option">
                     <img src="/media/{{choice.choice_text}}" />
                 </div><br>
-            {% endfor %}
                 <div class="option">
-                    <input class="btn btn-outline-success btn-sm" type="button" onclick="submit()" value="Yes">
+                    <button name="choice_yes" value="{{ choice.id }}" type="submit" class="btn btn-outline-success btn-sm">Yes</button>
                     <div style="margin-left: 50px; margin-right: 50px"></div>
-                    <input class="btn btn-outline-danger btn-sm" type="button" onclick="submit()" value="No">
+                    <button name="choice_no" value="{{ choice.id }}" type="submit" class="btn btn-outline-danger btn-sm">No</button>
                 </div>
+            {% endfor %}
             </form>
         </div>
     </div>

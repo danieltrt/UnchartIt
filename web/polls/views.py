@@ -19,9 +19,12 @@ from .forms import *
 
 logger = get_logger("polls")
 logger.setLevel("DEBUG")
+distinguishers = {}
+YESNO = "yesno"
+OPTIONS = "options"
 
 
-def load_dst():
+def load_dst(opt):
     with open("./polls/example/instance1.json") as f:
         data = load(f)
     # UnchartIt specific
@@ -38,78 +41,88 @@ def load_dst():
     # Generic
     model_checker = CBMC(template)
     solver = Solver("open-wbo")
-    interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
-
+    interaction_model = None
+    if opt == YESNO: interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
+    elif opt == OPTIONS: interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
     return Distinguisher(interaction_model, programs)
 
 
-dst = load_dst()
-options_v = {}
-selected_choice = None
-programs = None
-
-
-def index(request):
-    if selected_choice is not None:
-        inpt, output, programs = dst.distinguish(options[selected_choice.choice_text])
+def yesno(request, choice_id=None):
+    if choice_id is None:
+        dst = load_dst(YESNO)
     else:
-        inpt, output, programs = dst.distinguish()
+        selected_choice = get_object_or_404(Choice, pk=choice_id)
+        dst = distinguishers[selected_choice.question_text]
+        dst.update_programs(selected_choice.correctness)
 
-        question = Question(id=None, question_text=inpt)
-        question.save()
+    inpt, output = dst.distinguish()
+    if inpt is True and output is True:
+        return render(request, 'index.html')
 
-        count = 0
-        for out in output:
-            choice = Choice(id=None, question_text=question, choice_text=out)
-            choice.save()
-            options[choice.choice_text] = programs[count]
-            count += 1
+    question = Question(id=None, question_text=inpt, interaction_model=YESNO)
+    question.save()
+
+    for out in output:
+        choice = Choice(id=None, question_text=question, choice_text=out)
+        choice.save()
+
+    distinguishers[question] = dst
 
     return render(request, 'yesno.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
 
 
-def options(request):
-    global options_v
-    if selected_choice is not None:
-        inpt, output, programs = dst.distinguish(list(options_v[selected_choice.choice_text]))
+def options(request, choice_id=None):
+    if choice_id is None:
+        dst = load_dst(OPTIONS)
     else:
-        inpt, output, programs = dst.distinguish()
+        selected_choice = get_object_or_404(Choice, pk=choice_id)
+        dst = distinguishers[selected_choice.question_text]
+        dst.update_programs(selected_choice.choice_text)
 
-        question = Question(id=None, question_text=inpt)
-        question.save()
+    inpt, output = dst.distinguish()
+    if inpt is True and output is True:
+        return render(request, 'index.html')
 
-        count = 0
-        for out in output:
-            choice = Choice(id=None, question_text=question, choice_text=out)
-            choice.save()
-            options_v[choice.choice_text] = programs[count]
-            count += 1
+    question = Question(id=None, question_text=inpt, interaction_model=OPTIONS)
+    question.save()
+
+    for out in output:
+        choice = Choice(id=None, question_text=question, choice_text=out)
+        choice.save()
+
+    distinguishers[question] = dst
 
     return render(request, 'options.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
 
 
-def vote(request, question_id):
+def submit(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
-    try:
-        global selected_choice
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'options.html', {
-            'question': question,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        selected_choice.votes += 1
+    if question.interaction_model == OPTIONS:
+        key = "choice"
+        selected_choice = question.choice_set.get(pk=request.POST[key])
         selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        return HttpResponseRedirect(reverse('polls:index'))
+        return HttpResponseRedirect(reverse('polls:options_opt', kwargs={'choice_id': selected_choice.id}))
+
+    elif question.interaction_model == YESNO:
+        correctness = None
+
+        if "choice_yes" in request.POST:
+            key = "choice_yes"
+            correctness = True
+        elif "choice_no" in request.POST:
+            key = "choice_no"
+            correctness = False
+
+        selected_choice = question.choice_set.get(pk=request.POST[key])
+        selected_choice.correctness = correctness
+        selected_choice.save()
+
+        return HttpResponseRedirect(reverse('polls:yesno_opt', kwargs={'choice_id': selected_choice.id}))
 
 
-
+def index(request):
+    return HttpResponseRedirect(reverse('polls:yesno'))

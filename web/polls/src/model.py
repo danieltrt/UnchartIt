@@ -30,7 +30,7 @@ class OptionsInteractionModel(InteractionModel):
             symbolic_representation.add_soft_clause(1, [var])
         model = self.solver.run(symbolic_representation)
         if model is None:
-            return programs
+            return True, True, programs
         inpt = self.interpreter.extract_input(symbolic_representation, model)
         sets = self.get_sets(model, symbolic_representation.eq_vars, programs)
         logger.info("Model has {} groups: {}.".format(len(sets), [[str(p) for p in s] for s in sets]))
@@ -40,13 +40,24 @@ class OptionsInteractionModel(InteractionModel):
             idx = programs.index(program)
             results[program] = self.interpreter.extract_output(symbolic_representation, model, idx)
 
-        return self.ask_user(inpt, results) + (sets,)
+        inpt, output = self.ask_user(inpt, results)
+        dict_names = {}
+        i = 0
+        for program in representatives:
+            dict_names[output[i]] = list(representatives[program])
+            i += 1
+        return inpt, output, dict_names
 
     def ask_user(self, inpt, results):
         programs = [program for program in results]
         maximum = [results[program].get_maximum() for program in programs]
 
-        return inpt, [self.plot_gen.gen_bar_plot(results[program], "OPTIONS", max(maximum)) for program in programs]
+        names = []
+        for program in programs:
+            name = self.plot_gen.gen_bar_plot(results[program], "OPTIONS", max(maximum))
+            names += [name]
+
+        return inpt, names
 
     def get_sets(self, model, eq_vars, programs):
         sets = [{programs[i]} for i in range(len(programs))]
@@ -89,13 +100,13 @@ class YesNoInteractionModel(InteractionModel):
 
         idx = programs.index(programs_in_a[0])
         if len(programs_in_a) == len(programs):
-            print("Programs are equal")
-            return None
+            logger.info("Programs {} are equal.".format([str(p) for p in programs_in_a]))
+            return True, True, programs_in_a
 
         inpt = self.interpreter.extract_input(symbolic_representation, model)
         output = self.interpreter.extract_output(symbolic_representation, model, idx)
 
-        return self.ask_user(inpt, output), (programs_in_a, programs_in_b)
+        return self.ask_user(inpt, output) + ({False: programs_in_b, True: programs_in_a},)
 
     def ask_user(self, inpt, results):
         return inpt, [self.plot_gen.gen_bar_plot(results, "YesNo", results.get_maximum())]

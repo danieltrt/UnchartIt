@@ -9,9 +9,19 @@ class Distinguisher:
     def __init__(self, interaction_model, programs):
         self.interaction_model = interaction_model
         self.programs = programs
+        self.prev_run = None
+        self.done = False
 
-    def distinguish(self, programs=None):
-        if programs is None: programs = self.programs
-        logger.info("Now distinguishing {} programs: {}.".format(len(programs), [str(p) for p in programs]))
-        inpt, output, programs = self.interaction_model.generate_interaction(programs)
-        return inpt, output, programs
+    def distinguish(self):
+        if not self.done:
+            logger.info("Now distinguishing {} programs: {}.".format(len(self.programs), [str(p) for p in self.programs]))
+            inpt, output, answers = self.interaction_model.generate_interaction(self.programs)
+            self.prev_run = answers
+            return inpt, output
+        else:
+            return True, True
+
+    def update_programs(self, answer):
+        self.programs = self.prev_run[answer]
+        if len(self.programs) == 1:
+            self.done = True
