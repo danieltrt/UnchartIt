@@ -15,24 +15,28 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from .models import *
 from .forms import *
+from django.shortcuts import redirect
+from django.http import JsonResponse
+
 
 
 logger = get_logger("polls")
 logger.setLevel("DEBUG")
 distinguishers = {}
-YESNO = "yesno"
-OPTIONS = "options"
+YESNO = "Yes/No"
+OPTIONS = "Options"
+f = open("./polls/example/instance1.json")
+data = load(f)
+f.close()
 
 
 def load_dst(opt):
-    with open("./polls/example/instance1.json") as f:
-        data = load(f)
     # UnchartIt specific
     logger.debug("Loading programs.")
     programs = []
     programs_paths = [data['programs'] + f for f in listdir(data['programs'])]
     for program_path in programs_paths:
-        programs += [UnchartItProgram(program_path)]
+        programs += [UnchartItProgram(path=program_path)]
 
     logger.debug("Loading CBMC template.")
     template = UnchartItTemplate(data["cbmc_template"], data['input_constraints'])
@@ -47,53 +51,45 @@ def load_dst(opt):
     return Distinguisher(interaction_model, programs)
 
 
-def yesno(request, choice_id=None):
-    if choice_id is None:
-        dst = load_dst(YESNO)
-    else:
+def yesno(request, choice_id=None, iter_n=None):
+    if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
         dst = distinguishers[selected_choice.question_text]
         dst.update_programs(selected_choice.correctness)
+    else:
+        dst = distinguishers[iter_n]
 
     inpt, output = dst.distinguish()
     if inpt is True and output is True:
-        return render(request, 'index.html')
-
+        return render(request, 'success.html')
     question = Question(id=None, question_text=inpt, interaction_model=YESNO)
     question.save()
-
     for out in output:
         choice = Choice(id=None, question_text=question, choice_text=out)
         choice.save()
-
     distinguishers[question] = dst
-
     return render(request, 'yesno.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
 
 
-def options(request, choice_id=None):
-    if choice_id is None:
-        dst = load_dst(OPTIONS)
-    else:
+def options(request, choice_id=None, iter_n=None):
+    if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
         dst = distinguishers[selected_choice.question_text]
         dst.update_programs(selected_choice.choice_text)
+    else:
+        dst = distinguishers[iter_n]
 
     inpt, output = dst.distinguish()
     if inpt is True and output is True:
-        return render(request, 'index.html')
-
+        return render(request, 'success.html')
     question = Question(id=None, question_text=inpt, interaction_model=OPTIONS)
     question.save()
-
     for out in output:
         choice = Choice(id=None, question_text=question, choice_text=out)
         choice.save()
-
     distinguishers[question] = dst
-
     return render(request, 'options.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
@@ -125,4 +121,34 @@ def submit(request, question_id):
 
 
 def index(request):
-    return HttpResponseRedirect(reverse('polls:yesno'))
+    return render(request, 'home.html')
+
+
+def upload(request):
+    logger.debug("Loading CBMC template.")
+    constraints = [request.POST['inputConstraints'], request.POST['nRows'],
+                   request.POST['nCols'], request.POST['nBits'], request.POST['nBitsDecimals']]
+
+    template = UnchartItTemplate(data["cbmc_template"], constraints)
+    interpreter = UnchartItInterpreter(data['input_constraints'])
+    programs = []
+    for file_name in list(request.FILES.keys()):
+        programs += [UnchartItProgram(f=request.FILES[file_name])]
+
+    # Generic
+    model_checker = CBMC(template)
+    solver = Solver("open-wbo")
+
+    if request.POST['interactionModel'] == YESNO:
+        interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
+        dst = Distinguisher(interaction_model, programs)
+        distinguishers[dst.n] = dst
+        return HttpResponse(reverse("polls:yesno_iter", args=(0, dst.n,)))
+
+    elif request.POST['interactionModel'] == OPTIONS:
+        interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
+        dst = Distinguisher(interaction_model, programs)
+        distinguishers[dst.n] = dst
+        return HttpResponse(reverse("polls:options_iter", args=(0, dst.n,)))
+
+

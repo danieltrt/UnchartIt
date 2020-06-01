@@ -1,14 +1,13 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+{% extends 'base.html' %}
 
-
+{% block content %}
 <div class="container">
+    <div style="padding-bottom: 40px" class="row"></div>
     <div class="row justify-content-center">
-        <div class="col-md-5 my-auto">
-            <div style="text-align: center; padding-bottom: 10px" class="justify-content-center"><h6>Consider the following input table:</h6></div>
+        <div class="col-md-6 my-auto">
+            <div style="text-align: center; padding-bottom: 10px" class="justify-content-center"><h4>Consider the following input table:</h4></div>
             <div class="justify-content-center" style="width: 75%; margin: auto;">
-                <table style="text-align: center; font-size: 10px" class="table table-striped table-hover table-bordered table-sm table-responsive-sm table-fit">
+                <table style="text-align: center; font-size: 13px; margin-top: 20px;" class="table table-striped table-hover table-bordered table-fit">
                     <thead class="thead-dark">
                         <tr>
                             {% for k in header %}
@@ -28,9 +27,8 @@
                 </table>
             </div>
         </div>
-        <div class="col-md-2 my-auto"></div>
-        <div class="col-md-5 my-auto">
-            <div style="text-align: center; padding-top: 10px" class="justify-content-center"><h6>Is the following output chart correct?</h6></div>
+        <div class="col-md-6 my-auto">
+            <div style="text-align: center; padding-top: 10px" class="justify-content-center"><h4>Is the following output chart correct?</h4></div>
             <form action="{% url 'polls:submit' question.id %}" method="post">
             {% csrf_token %}
             {% for choice in question.choice_set.all %}
@@ -38,12 +36,13 @@
                     <img src="/media/{{choice.choice_text}}" />
                 </div><br>
                 <div class="option">
-                    <button name="choice_yes" value="{{ choice.id }}" type="submit" class="btn btn-outline-success btn-sm">Yes</button>
+                    <button name="choice_yes" value="{{ choice.id }}" type="submit" class="btn btn-outline-success">Yes</button>
                     <div style="margin-left: 50px; margin-right: 50px"></div>
-                    <button name="choice_no" value="{{ choice.id }}" type="submit" class="btn btn-outline-danger btn-sm">No</button>
+                    <button name="choice_no" value="{{ choice.id }}" type="submit" class="btn btn-outline-danger">No</button>
                 </div>
             {% endfor %}
             </form>
         </div>
     </div>
 </div>
+{% endblock %}

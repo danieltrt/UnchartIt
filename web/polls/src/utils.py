@@ -59,4 +59,5 @@ class PlotGenerator:
         file_path = os.path.dirname(__file__) + "/../../media/{}.png".format(self.fig_n)
         plt.savefig(file_path)
         plt.figure(self.fig_n)
+        plt.clf()
         return "{}.png".format(self.fig_n)

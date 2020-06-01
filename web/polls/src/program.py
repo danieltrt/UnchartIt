@@ -34,6 +34,11 @@ class CProgram:
 
 class UnchartItProgram(CProgram):
 
-    def __init__(self, path):
-        with open(path, "r+") as f:
-            super().__init__(f.read(), "void", "dataframe")
+    def __init__(self, path=None, f=None):
+        if path is not None:
+            with open(path, "r+") as f:
+                super().__init__(f.read(), "void", "dataframe")
+        elif f is not None:
+            super().__init__(f.read().decode(encoding='UTF-8'), "void", "dataframe")
+
+

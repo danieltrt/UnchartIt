@@ -5,12 +5,15 @@ logger = get_logger("polls.distinguisher")
 
 
 class Distinguisher:
+    n = 0
 
     def __init__(self, interaction_model, programs):
         self.interaction_model = interaction_model
         self.programs = programs
         self.prev_run = None
         self.done = False
+        self.n = Distinguisher.n
+        Distinguisher.n += 1
 
     def distinguish(self):
         if not self.done:

@@ -1,59 +1,58 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
-<main role="main">
-    <section style="background-color: white" class="jumbotron text-center">
-        <div class="container">
-            <h4 class="jumbotron-heading">Consider the
-                following
-                input table:</h4>
-            <br>
-            <div class="justify-content-center" style="width: 75%; margin: auto; display: flex;">
-                <table style="align-self: center; text-align: center;"
-                       class="table table-striped table-hover table-bordered table-responsive table-fit">
-                    <thead class="thead-dark">
-                    <tr>
-                        {% for k in header %}
-                        <th>{{k}}</th>
-                        {% endfor %}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for r in rows %}
-                    <tr>
-                        {% for c in r %}
-                        <td>{{c}}</td>
-                        {% endfor %}
-                    </tr>
+{% extends 'base.html' %}
+
+{% block content %}
+<section style="background-color: white" class="jumbotron text-center">
+    <div class="container">
+        <h4 class="jumbotron-heading">Consider the
+            following
+            input table:</h4>
+        <br>
+        <div class="justify-content-center" style="width: 75%; margin: auto; display: flex;">
+            <table style="align-self: center; text-align: center;"
+                   class="table table-striped table-hover table-bordered table-responsive table-fit">
+                <thead class="thead-dark">
+                <tr>
+                    {% for k in header %}
+                    <th>{{k}}</th>
                     {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <br>
-            <h4 class="jumbotron-heading">Select the corresponding output below.</h4>
+                </tr>
+                </thead>
+                <tbody>
+                {% for r in rows %}
+                <tr>
+                    {% for c in r %}
+                    <td>{{c}}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </section>
-    <div class="album py-5 bg-light">
-        <div class="container">
-            <div class="row">
-                {% for choice in question.choice_set.all %}
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <img class="mx-auto d-block card-img-top" width="100%" src="/media/{{choice.choice_text}}"/>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <form style="margin: auto" action="{% url 'polls:submit' question.id %}" method="post">
-                                    {% csrf_token %}
-                                    <button name="choice" value="{{ choice.id }}" type="submit" class="btn btn-sm btn-outline-secondary">This one!</button>
-                                </form>
-                            </div>
+        <br>
+        <h4 class="jumbotron-heading">Select the corresponding output below.</h4>
+    </div>
+</section>
+<div class="album py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            {% for choice in question.choice_set.all %}
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img class="mx-auto d-block card-img-top" width="100%" src="/media/{{choice.choice_text}}"/>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <form style="margin: auto" action="{% url 'polls:submit' question.id %}" method="post">
+                                {% csrf_token %}
+                                <button name="choice" value="{{ choice.id }}" type="submit" class="btn btn-sm btn-outline-secondary">This one!</button>
+                            </form>
                         </div>
                     </div>
                 </div>
-
-                {% endfor %}
-
             </div>
+
+            {% endfor %}
+
         </div>
     </div>
-</main>
+</div>
+{% endblock %}

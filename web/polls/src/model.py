@@ -42,10 +42,8 @@ class OptionsInteractionModel(InteractionModel):
 
         inpt, output = self.ask_user(inpt, results)
         dict_names = {}
-        i = 0
-        for program in representatives:
-            dict_names[output[i]] = list(representatives[program])
-            i += 1
+        for i in range(len(representatives.keys())):
+            dict_names[output[i]] = list(list(representatives.values())[i])
         return inpt, output, dict_names
 
     def ask_user(self, inpt, results):
