@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    #myDropzone {
+        cursor: pointer;
+        border: 0.1em dashed rgba(0, 0, 0, 0.5);
+        padding: 30px 0;
+    }
+
+    .dropzone .dz-preview .dz-image {
+        width: 102px;
+        height: 120px;
+    }
+
+    .dz-progress {
+        /* progress bar covers file name */
+        display: none !important;
+    }
+
+</style>
+<script>
+    Dropzone.options.myDropzone = {
+        // Prevents Dropzone from uploading dropped files immediately
+        autoProcessQueue: false,
+        acceptedFiles: ".c",
+        parallelUploads: 10,
+        uploadMultiple: true,
+        addRemoveLinks: true,
+        maxFilesize: 1, // MB
+        url: "{% url 'dist:upload' %}",
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        init: function () {
+            var submitButton = document.querySelector("#submit-all")
+            myDropzone = this; // closure
+
+            submitButton.addEventListener("click", function () {
+                myDropzone.processQueue();
+                // autoProcessQueue: true// Tell Dropzone to process all queued files.
+            });
+
+            // You might want to show the submit button only when
+            // files are dropped here:
+            this.on("addedfile", function () {
+                submitButton.classList.remove("disabled");
+            });
+
+            this.on("complete", function (file) {
+                if (this.getUploadingFiles().length === 0 && this.getQueuedFiles().length === 0) {
+                    window.location.replace(file.xhr.response)
+                }
+            });
+
+            this.on("sending", function (file, xhr, data) {
+                var nRows = document.querySelector("#nRows");
+                var nCols = document.querySelector("#nCols");
+                //var nBits = document.querySelector("#nBits");
+                //var nBitsDecimals = document.querySelector("#nBitsDecimals")
+                var constraints = document.querySelector("#inputConstraints");
+                var interaction = document.querySelector("#interactionModel");
+
+                data.append("nRows", nRows.value);
+                data.append("nCols", nCols.value);
+                //data.append("nBits", nBits.value);
+                //data.append("nBitsDecimals", nBitsDecimals.value);
+                data.append("inputConstraints", constraints.value);
+                data.append("interactionModel", interaction.value);
+            });
+
+        }
+    };
+</script>
+
+<div class="container">
+    <div style="padding-bottom: 50px" class="row"></div>
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <form>
+                <div class="form-group">
+                    <label for="interactionModel">Interaction Model</label>
+                    <select style="font-variant: small-caps;" class="form-control" id="interactionModel">
+                        <option>Options</option>
+                        <option>Yes/No</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="nRows">Number of Rows</label>
+                        <select id="nRows" class="form-control">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option selected>5</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="nCols">Number of Columns</label>
+                        <select id="nCols" class="form-control">
+                            <option>1</option>
+                            <option selected>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputConstraints">Input Constraints</label>
+                    <textarea class="form-control" id="inputConstraints" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <div id='myDropzone' name='dropzone' class='dropzone'>
+                        <div class="dz-message" data-dz-message><span>Drop the programs here.</span></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="button" style="float: right;" id="submit-all" class="btn btn-primary disabled">
+                        Distinguish
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
+
+{% endblock %}

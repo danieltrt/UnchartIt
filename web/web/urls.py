@@ -21,9 +21,9 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from . import settings
 
 urlpatterns = [
-    path('polls/', include('polls.urls')),
+    path('dist/', include('dist.urls')),
     path('admin/', admin.site.urls),
-    path('', RedirectView.as_view(url='/polls/', permanent=True)),
+    path('', RedirectView.as_view(url='/dist/', permanent=True)),
 
 ]
 
