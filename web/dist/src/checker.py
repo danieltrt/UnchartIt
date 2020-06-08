@@ -2,6 +2,7 @@ from .logger import get_logger
 import os
 import time
 import subprocess
+from json import loads
 from os import linesep
 
 
@@ -111,7 +112,6 @@ class CBMC(ModelChecker):
         out, err = p.communicate()
         lns = str(out, encoding='utf-8')
         logger.info("CBMC return code {}.".format(p.returncode))
-
 
         n_vars, n_clauses, inc_dimacs = self.get_dimacs(lns.splitlines())
         eq_vars = self.get_eq_vars(lns.splitlines())
@@ -242,3 +242,29 @@ class UnchartItTemplate(Template):
         template = template.replace(self.template_n_cols, str(self.n_cols))
         template = template.replace(self.template_programs, programs_strings)
         return template
+
+
+def json_to_cprover(json_text):
+    res = loads(json_text)
+    ctrs = ""
+    base = "__CPROVER_assume({})"
+    i = 0
+    for col in res:
+        type = res[col][0]
+        ctr = None
+        if type == "string":
+            ctr = base.format(f"df->table[i][{i}] >= -1 &&"
+                              f"df->table[i][{i}] <= {res[col][1]}")
+        else:
+            min_val = res[col][1] * 100
+            max_val = res[col][2] * 100
+            if type == "int":
+                ctr = base.format(f"df->table[i][{i}] >= {min_val} && "
+                                  f"df->table[i][{i}] <= {max_val } && "
+                                  f"df->table[i][{i}] % 100 == 0")
+            elif type == "float":
+                ctr = base.format(f"df->table[i][{i}] >= {min_val} && "
+                                  f"df->table[i][{i}] <= {max_val}")
+        ctrs += ctr + ";\n"
+
+    return ctrs;

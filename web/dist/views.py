@@ -19,7 +19,6 @@ from django.shortcuts import redirect
 from django.http import JsonResponse
 
 
-
 logger = get_logger("dist")
 logger.setLevel("DEBUG")
 distinguishers = {}
@@ -126,9 +125,11 @@ def index(request):
 
 def upload(request):
     logger.debug("Loading CBMC template.")
-    constraints = [request.POST['inputConstraints'], int(request.POST['nRows']),
-                   int(request.POST['nCols']) + 1, 8, 24]
 
+    # build constraints list
+    input_constraints = json_to_cprover(request.POST['inputConstraints'])
+    constraints = [input_constraints, int(request.POST['nRows']),
+                   int(request.POST['nCols']) + 1, 8, 24]
     template = UnchartItTemplate(data["cbmc_template"], constraints)
     interpreter = UnchartItInterpreter(data['input_constraints'])
     programs = []

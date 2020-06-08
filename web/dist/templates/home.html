@@ -5,7 +5,12 @@
     #myDropzone {
         cursor: pointer;
         border: 0.1em dashed rgba(0, 0, 0, 0.5);
-        padding: 30px 0;
+        height: 200px;
+
+    }
+
+    .dz-message {
+        padding: 35px;
     }
 
     .dropzone .dz-preview .dz-image {
@@ -20,6 +25,17 @@
 
 </style>
 <script>
+
+    window.onload = function() {
+        var str = '{\n'
+        str += '    "col_name1": ["string", # different values]\n';
+        str += '    "col_name2": ["int", min value, max value]\n';
+        str += '    "col_name3": ["float", min value, max value]\n';
+        str += '}'
+        document.querySelector("#inputConstraints").placeholder = str;
+    };
+
+
     Dropzone.options.myDropzone = {
         // Prevents Dropzone from uploading dropped files immediately
         autoProcessQueue: false,
@@ -99,8 +115,8 @@
                         <label for="nCols">Number of Columns</label>
                         <select id="nCols" class="form-control">
                             <option>1</option>
-                            <option selected>2</option>
-                            <option>3</option>
+                            <option>2</option>
+                            <option selected>3</option>
                             <option>4</option>
                             <option>5</option>
                         </select>
@@ -108,7 +124,7 @@
                 </div>
                 <div class="form-group">
                     <label for="inputConstraints">Input Constraints</label>
-                    <textarea class="form-control" id="inputConstraints" rows="3"></textarea>
+                    <textarea class="form-control" id="inputConstraints" rows="5"></textarea>
                 </div>
                 <div class="form-group">
                     <div id='myDropzone' name='dropzone' class='dropzone'>

@@ -1,5 +1,8 @@
 from .model import *
 from .logger import get_logger
+from .model import *
+from .program import *
+from typing import List
 
 logger = get_logger("dist.distinguisher")
 
@@ -7,7 +10,7 @@ logger = get_logger("dist.distinguisher")
 class Distinguisher:
     n = 0
 
-    def __init__(self, interaction_model, programs):
+    def __init__(self, interaction_model: InteractionModel, programs: List[CProgram]):
         self.interaction_model = interaction_model
         self.programs = programs
         self.prev_run = None

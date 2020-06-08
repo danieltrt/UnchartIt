@@ -3,8 +3,8 @@ from sys import byteorder
 
 class Table:
 
-    text_strings = {-1: "NA", 0: "''", 1: "Google", 2: "Microsoft", 3: "Apple", 4: "Lehman Brothers",
-                    5: "JP Morgan", 6: "AIG", 7: "Deutsche Bank", 8: "General Motors", 9: "Santander", 10: "Sony"}
+    text_strings = {-1: "NA", 0: "''", 1: "Google", 2: "Microsoft", 3: "Apple", 4: "Oracle",
+                    5: "JP Morgan", 6: "Facebook", 7: "Deutsche Bank", 8: "General Motors", 9: "Logitech", 10: "Sony"}
 
     def __init__(self, table, active_rows, active_cols, order):
         self.table = table
