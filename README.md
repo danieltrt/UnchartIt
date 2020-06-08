@@ -4,7 +4,7 @@
 **Create a virtual environment (Python 3.8):**
 
 `python3 -m venv venv`\
-`source venv/bin/active`
+`source venv/bin/activate`
 
 **Requirements:**
 
