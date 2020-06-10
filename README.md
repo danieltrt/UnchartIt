@@ -1,7 +1,7 @@
 **Create a virtual environment (Python 3.8):**
 
-python3 -m venv venv\
-source venv/bin/active
+`python3 -m venv venv`\
+`source venv/bin/activate`
 
 **Requirements**:\
 `pip3 install django==3.0.6`\
