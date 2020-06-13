@@ -2,6 +2,19 @@
 
 {% block content %}
 
-<p>{{program}}</p>
+<style>
+    html { height: 100%; }
+    body { height: 90%; }
+
+</style>
+<div class="container h-100" style="width: 100%">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-md-12 text-center">
+            <h1 class="cover-heading">Correct Program:</h1>
+            <p class="lead">{{program}}</p>
+        </div>
+    </div>
+</div>
+
 
 {% endblock %}

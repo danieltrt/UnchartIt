@@ -33,4 +33,5 @@ class Distinguisher:
             self.done = True
 
     def get_answer(self, answer):
-        return self.prev_run[answer][0].string
+        progs = self.prev_run.get(answer, self.prev_run[None])
+        return progs[0].string

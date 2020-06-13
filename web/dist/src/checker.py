@@ -244,20 +244,19 @@ class UnchartItTemplate(Template):
         return template
 
 
-def json_to_cprover(json_text):
-    res = loads(json_text)
+def json_to_cprover(json):
     ctrs = ""
     base = "__CPROVER_assume({})"
     i = 0
-    for col in res:
-        type = res[col][0]
+    for col in json:
+        type = json[col][0]
         ctr = None
         if type == "string":
             ctr = base.format(f"df->table[i][{i}] >= -1 &&"
-                              f"df->table[i][{i}] <= {res[col][1]}")
+                              f"df->table[i][{i}] <= {json[col][1]}")
         else:
-            min_val = res[col][1] * 100
-            max_val = res[col][2] * 100
+            min_val = json[col][1] * 100
+            max_val = json[col][2] * 100
             if type == "int":
                 ctr = base.format(f"df->table[i][{i}] >= {min_val} && "
                                   f"df->table[i][{i}] <= {max_val } && "
@@ -267,4 +266,4 @@ def json_to_cprover(json_text):
                                   f"df->table[i][{i}] <= {max_val}")
         ctrs += ctr + ";\n"
 
-    return ctrs;
+    return ctrs

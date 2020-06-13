@@ -5,8 +5,6 @@
     #myDropzone {
         cursor: pointer;
         border: 0.1em dashed rgba(0, 0, 0, 0.5);
-        height: 200px;
-
     }
 
     .dz-message {
@@ -14,7 +12,7 @@
     }
 
     .dropzone .dz-preview .dz-image {
-        width: 102px;
+        width: 92px;
         height: 120px;
     }
 
@@ -27,15 +25,8 @@
 <script>
 
     window.onload = function () {
-        var str = '{\n'
-        str += '    "col_name1": ["string", # different values]\n';
-        str += '    "col_name2": ["int", min value, max value]\n';
-        str += '    "col_name3": ["float", min value, max value]\n';
-        str += '}'
-
         changeColsForm();
     };
-
 
     Dropzone.options.myDropzone = {
         // Prevents Dropzone from uploading dropped files immediately
@@ -48,7 +39,7 @@
         url: "{% url 'dist:upload' %}",
         headers: {'X-CSRFToken': '{{ csrf_token }}'},
         init: function () {
-            var submitButton = document.querySelector("#submit-all")
+            let submitButton = document.querySelector("#submit-all")
             myDropzone = this; // closure
 
             submitButton.addEventListener("click", function () {
@@ -69,12 +60,12 @@
             });
 
             this.on("sending", function (file, xhr, data) {
-                var nRows = document.querySelector("#nRows");
-                var nCols = document.querySelector("#nCols");
-                //var nBits = document.querySelector("#nBits");
-                //var nBitsDecimals = document.querySelector("#nBitsDecimals")
-                var constraints = {};
-                for (var i = 0; i < nCols.value; i++) {
+                let nRows = document.querySelector("#nRows");
+                let nCols = document.querySelector("#nCols");
+                //let nBits = document.querySelector("#nBits");
+                //let nBitsDecimals = document.querySelector("#nBitsDecimals")
+                let constraints = {};
+                for (let i = 0; i < nCols.value; i++) {
                     switch (document.querySelector("#type" + i).value) {
                         case 'int':
                             constraints[document.querySelector("#name" + i).value] =
@@ -91,12 +82,10 @@
                     }
                 }
 
-                var interaction = document.querySelector("#interactionModel");
+                let interaction = document.querySelector("#interactionModel");
 
                 data.append("nRows", nRows.value);
                 data.append("nCols", nCols.value);
-                //data.append("nBits", nBits.value);
-                //data.append("nBitsDecimals", nBitsDecimals.value);
                 data.append("inputConstraints", JSON.stringify(constraints));
                 data.append("interactionModel", interaction.value);
             });
@@ -105,99 +94,103 @@
     };
 
 
+    String.prototype.format = function () {
+        let formatted = this;
+        for (let i = 0; i < arguments.length; i++) {
+            let regexp = new RegExp('\\{' + i + '\\}', 'gi');
+            formatted = formatted.replace(regexp, arguments[i]);
+        }
+        return formatted;
+    };
+
     function changeColsForm() {
-        var nCols = document.getElementById("nCols").value;
-        var div = [0]
+        let nCols = document.getElementById("nCols").value;
+        let div = [0]
 
-        for (i = 0; i < nCols; i++) {
-            div.push(Math.floor((i + 1) * 9 / nCols));
+        for (let i = 0; i < nCols; i++) {
+            div.push(Math.floor((i + 1) * 10 / nCols));
         }
 
-        for (i = 0; i < 5; i++) {
-            document.getElementById("col" + i + "_info").innerHTML = "";
-            document.getElementById("col" + i + "_info").setAttribute("hidden", "");
+        for (let i = 0; i < 5; i++) {
+            document.getElementById("col{0}_info".format(i)).innerHTML = "";
+            document.getElementById("col{0}_info".format(i)).setAttribute("hidden", "");
         }
 
-        console.log(div);
-        var i;
-
-        function coltypes() {
-            var tmp = '';
-            for (i = 0; i < nCols; i++) {
-                tmp += '<div style="top:-4px" class="col-md-' + (div[i + 1] - div[i]) + '" >\n' +
-                    '<select onchange="changeConstraintValues(' + i + ')" id="type' + i + '" ' + 'class="form-control">\n' +
-                    '<option selected>int</option>\n' +
-                    '<option>real</option>\n' +
-                    '<option>str</option>\n' +
-                    '</select>\n' +
+        function colTypes() {
+            let tmp = '';
+            for (let i = 0; i < nCols; i++) {
+                tmp += '<div style="top:-4px" class="col-md-{0}">'.format(div[i + 1] - div[i]) +
+                    '<select onchange="changeConstraintValues({0})" id="type{0}" class="form-control">'.format(i) +
+                    '<option selected>int</option>' +
+                    '<option>real</option>' +
+                    '<option>str</option>' +
+                    '</select>' +
                     '</div> <br>'
             }
             return tmp;
         }
 
-        function colnames() {
-            var tmp = '';
-            for (i = 0; i < nCols; i++) {
-                tmp += '<div style="top:-4px" class="col-md-' + (div[i + 1] - div[i]) + '" >\n' +
-                    '<input onchange="changeConstraintValues(' + i + ')" type="text" class="form-control" id="name' + i + '" value="Name ' + (i + 1) + '" ' + '>\n' +
+        function colNames() {
+            let tmp = '';
+            for (let i = 0; i < nCols; i++) {
+                tmp += '<div style="top:-4px" class="col-md-{0}" >'.format(div[i + 1] - div[i]) +
+                    '<input onchange="changeConstraintValues({0})" type="text" class="form-control" id="name{0}" value="Name {1}" >'.format(i, i+1) +
                     '</div>'
             }
             return tmp;
         }
 
-        var types = coltypes();
-        var names = colnames();
+        let types = colTypes();
+        let names = colNames();
 
-        document.getElementById("colTypes").innerHTML = '<div class="col-md-3">\n' +
-            '<label style="padding-bottom: 4px; padding-top: 4px">Column Types</label>\n' +
+        document.getElementById("colTypes").innerHTML = '<div class="col-md-2">' +
+            '<label class="centered-label">Column Types</label>' +
             '</div>' + types;
 
-        document.getElementById("colNames").innerHTML = '<div class="col-md-3">\n' +
-            '<label style="padding-bottom: 4px; padding-top: 4px">Column Names</label> </div>\n' +
+        document.getElementById("colNames").innerHTML = '<div class="col-md-2">' +
+            '<label class="centered-label">Column Names</label>' +
             '</div>' + names;
 
-        for (i = 0; i < nCols; i++) {
+        for (let i = 0; i < nCols; i++) {
             changeConstraintValues(i);
         }
     }
 
     function changeConstraintValues(i) {
-        var type = document.getElementById('type' + i).value;
-        var name = document.getElementById('name' + i).value;
+        let type = document.getElementById('type' + i).value;
+        let name = document.getElementById('name' + i).value;
         if (name == "") {
-            name = "Name " + (i+1)
+            name = "Name " + (i + 1)
         }
         if (type == 'int' || type == 'real') {
-            document.getElementById("col" + i + "_info").innerHTML = '<div class="form-group col-md-3">\n' +
-                '<label>Column</label>\n' +
-                '<input class="form-control" type="text" placeholder="' + name + '" readonly>\n' +
-                '</select>\n' +
-                '</div>\n' +
-                '\n' +
+            document.getElementById("col{0}_info".format(i)).innerHTML = '<div class="form-group col-md-3">' +
+                '<label>Column</label>' +
+                '<input class="form-control" type="text" value="{0}" readonly>'.format(name) +
+                '</select>' +
+                '</div>' +
                 '<div class="col-md-1"></div>' +
-                '<div class="form-group col-md-4">\n' +
-                '<label>Min Value</label>\n' +
-                '<input value="0" id="minval' + i + '" class="form-control" type="number">' +
-                '</div>\n' +
-                '<div class="form-group  col-md-4">\n' +
-                '<label>Max Value</label>\n' +
-                '<input value="128" id="maxval' + i + '" class="form-control" type="number">' +
+                '<div class="form-group col-md-4">' +
+                '<label>Min Value</label>' +
+                '<input value="0" id="minval{0}" class="form-control" type="number">'.format(i) +
+                '</div>' +
+                '<div class="form-group  col-md-4">' +
+                '<label>Max Value</label>' +
+                '<input value="128" id="maxval{0}" class="form-control" type="number">'.format(i) +
                 '</div>';
         } else {
-            document.getElementById("col" + i + "_info").innerHTML = '<div class="form-group col-md-3">\n' +
-                '<label>Column</label>\n' +
-                '<input class="form-control" type="text" placeholder="' + name + '" readonly>\n' +
-                '</select>\n' +
-                '</div>\n' +
-                '\n' +
+            document.getElementById("col{0}_info".format(i)).innerHTML = '<div class="form-group col-md-3">' +
+                '<label>Column</label>' +
+                '<input class="form-control" type="text" placeholder="{0}" readonly>'.format(name) +
+                '</select>' +
+                '</div>' +
                 '<div class="col-md-1"></div>' +
-                '<div class="form-group col-md-8">\n' +
-                '<label>Number of different strings</label>\n' +
-                '<input value="5" class="form-control" id="diff' + i + '"  type="number">' +
+                '<div class="form-group col-md-8">' +
+                '<label>Number of Different Strings</label>' +
+                '<input value="5" class="form-control" id="diff{0}" type="number">'.format(i) +
                 '</div>';
         }
 
-        document.getElementById("col" + i + "_info").removeAttribute("hidden");
+        document.getElementById("col{0}_info".format(i)).removeAttribute("hidden");
 
     }
 </script>

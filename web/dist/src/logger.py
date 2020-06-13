@@ -2,6 +2,7 @@ import click
 import logging
 from datetime import datetime
 
+
 class _ColorFormatter(logging.Formatter):
     colors = {
         'error': dict(fg='red'),

@@ -14,6 +14,11 @@ img{
     justify-content: center; /* center items vertically, in this case */
 }
 
+.centered-label {
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
+
 
 :root {
   --jumbotron-padding-y: 3rem;

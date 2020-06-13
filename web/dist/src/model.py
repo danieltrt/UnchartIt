@@ -30,7 +30,7 @@ class OptionsInteractionModel(InteractionModel):
             symbolic_representation.add_soft_clause(1, [var])
         model = self.solver.run(symbolic_representation)
         if model is None:
-            return True, True, programs
+            return True, True, {None: programs}
         inpt = self.interpreter.extract_input(symbolic_representation, model)
         sets = self.get_sets(model, symbolic_representation.eq_vars, programs)
         logger.info("Model has {} groups: {}.".format(len(sets), [[str(p) for p in s] for s in sets]))
@@ -99,7 +99,7 @@ class YesNoInteractionModel(InteractionModel):
         idx = programs.index(programs_in_a[0])
         if len(programs_in_a) == len(programs):
             logger.info("Programs {} are equal.".format([str(p) for p in programs_in_a]))
-            return True, True, programs_in_a
+            return True, True, {None: programs_in_a}
 
         inpt = self.interpreter.extract_input(symbolic_representation, model)
         output = self.interpreter.extract_output(symbolic_representation, model, idx)

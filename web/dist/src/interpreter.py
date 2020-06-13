@@ -1,4 +1,7 @@
 from sys import byteorder
+from .logger import get_logger
+
+logger = get_logger("dist.interpreter")
 
 
 class Table:
@@ -6,14 +9,14 @@ class Table:
     text_strings = {-1: "NA", 0: "''", 1: "Google", 2: "Microsoft", 3: "Apple", 4: "Oracle",
                     5: "JP Morgan", 6: "Facebook", 7: "Deutsche Bank", 8: "General Motors", 9: "Logitech", 10: "Sony"}
 
-    def __init__(self, table, active_rows, active_cols, order):
+    def __init__(self, table, active_rows, active_cols, order, col_names):
         self.table = table
         self.active_rows = active_rows
         self.active_cols = active_cols
         self.order = order
         self.n_rows = sum(active_rows)
         self.n_cols = sum(active_cols) + 1
-        self.col_names = ["COL{}".format(i) for i in range(sum(active_cols))]
+        self.col_names = [col_names[i] for i in range(len(active_cols)) if active_cols[i]]
 
     def display(self):
         string = ""
@@ -38,7 +41,10 @@ class Table:
                 col = list(map(lambda x: x / 100, col))
             cols += [col]
 
-        cols[0] = list(map(lambda x: self.text_strings[x], cols[0]))
+        try:
+            cols[0] = list(map(lambda x: self.text_strings[x], cols[0]))
+        except:
+            logger.error("Could not map {} to strings.".format(cols[0]))
         return cols
 
     def get_active_rows(self):
@@ -68,14 +74,15 @@ class UnchartItInterpreter(ModelInterpreter):
         self.cols = input_constraints[2]
         self.n_bits = input_constraints[3]
         self.n_bits_table = input_constraints[4]
+        self.col_names = input_constraints[5]
 
     def extract_input(self, symbolic_representation, model):
         table, active_rows, active_cols, order = self.extract_table(model, symbolic_representation.input_vars)
-        return Table(table, active_rows, active_cols, order)
+        return Table(table, active_rows, active_cols, order, self.col_names)
 
     def extract_output(self, symbolic_representation, model, idx):
         table, active_rows, active_cols, order = self.extract_table(model, symbolic_representation.output_vars[idx])
-        return Table(table, active_rows, active_cols, order)
+        return Table(table, active_rows, active_cols, order, self.col_names)
 
     def extract_table(self, model, vars):
         table = [[0 for _ in range(self.cols)] for _ in range(self.rows)]

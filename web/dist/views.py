@@ -6,7 +6,7 @@ from .src.interpreter import *
 from .src.solver import *
 from .src.model import *
 from .src.distinguisher import *
-from json import load
+from json import load, loads
 from os import listdir
 import sys
 from django.http import HttpResponse, Http404, HttpResponseRedirect
@@ -51,17 +51,18 @@ def load_dst(opt):
 
 
 def yesno(request, choice_id=None, iter_n=None):
-    selected_choice = None
+    answer = None
     if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
         dst = distinguishers[selected_choice.question_text]
         dst.update_programs(selected_choice.correctness)
+        answer = selected_choice.correctness
     else:
         dst = distinguishers[iter_n]
 
     inpt, output = dst.distinguish()
     if inpt is True and output is True:
-        return render(request, 'success.html', {'program': dst.get_answer(selected_choice.correctness)})
+        return render(request, 'success.html', {'program': dst.get_answer(answer)})
     question = Question(id=None, question_text=inpt, interaction_model=YESNO)
     question.save()
     for out in output:
@@ -74,17 +75,18 @@ def yesno(request, choice_id=None, iter_n=None):
 
 
 def options(request, choice_id=None, iter_n=None):
-    selected_choice = None
+    answer = None
     if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
         dst = distinguishers[selected_choice.question_text]
         dst.update_programs(selected_choice.choice_text)
+        answer = selected_choice.choice_text
     else:
         dst = distinguishers[iter_n]
 
     inpt, output = dst.distinguish()
     if inpt is True and output is True:
-        return render(request, 'success.html', {'program': dst.get_answer(selected_choice.choice_text)})
+        return render(request, 'success.html', {'program': dst.get_answer(answer)})
     question = Question(id=None, question_text=inpt, interaction_model=OPTIONS)
     question.save()
     for out in output:
@@ -129,11 +131,12 @@ def upload(request):
     logger.debug("Loading CBMC template.")
 
     # build constraints list
-    input_constraints = json_to_cprover(request.POST['inputConstraints'])
+    json = loads(request.POST['inputConstraints'])
+    input_constraints = json_to_cprover(json)
     constraints = [input_constraints, int(request.POST['nRows']),
-                   int(request.POST['nCols']) + 1, 8, 24]
-    template = UnchartItTemplate(data["cbmc_template"], constraints)
-    interpreter = UnchartItInterpreter(data['input_constraints'])
+                   int(request.POST['nCols']) + 1, 8, 24, list(json.keys()) + ['NEW']]
+    template = UnchartItTemplate(data['cbmc_template'], constraints)
+    interpreter = UnchartItInterpreter(constraints)
     programs = []
     for file_name in list(request.FILES.keys()):
         programs += [UnchartItProgram(f=request.FILES[file_name])]
