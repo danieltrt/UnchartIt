@@ -51,6 +51,7 @@ def load_dst(opt):
 
 
 def yesno(request, choice_id=None, iter_n=None):
+    selected_choice = None
     if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
         dst = distinguishers[selected_choice.question_text]
@@ -60,7 +61,7 @@ def yesno(request, choice_id=None, iter_n=None):
 
     inpt, output = dst.distinguish()
     if inpt is True and output is True:
-        return render(request, 'success.html')
+        return render(request, 'success.html', {'program': dst.get_answer(selected_choice.correctness)})
     question = Question(id=None, question_text=inpt, interaction_model=YESNO)
     question.save()
     for out in output:
@@ -73,6 +74,7 @@ def yesno(request, choice_id=None, iter_n=None):
 
 
 def options(request, choice_id=None, iter_n=None):
+    selected_choice = None
     if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
         dst = distinguishers[selected_choice.question_text]
@@ -82,7 +84,7 @@ def options(request, choice_id=None, iter_n=None):
 
     inpt, output = dst.distinguish()
     if inpt is True and output is True:
-        return render(request, 'success.html')
+        return render(request, 'success.html', {'program': dst.get_answer(selected_choice.choice_text)})
     question = Question(id=None, question_text=inpt, interaction_model=OPTIONS)
     question.save()
     for out in output:

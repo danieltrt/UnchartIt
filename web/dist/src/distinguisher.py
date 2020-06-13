@@ -31,3 +31,6 @@ class Distinguisher:
         self.programs = self.prev_run[answer]
         if len(self.programs) == 1:
             self.done = True
+
+    def get_answer(self, answer):
+        return self.prev_run[answer][0].string
