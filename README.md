@@ -1,4 +1,4 @@
-## **UnchartIt Distinguisher: A program distinguisher for program synthesis**
+## **UnchartIt Distinguisher: Program Distinguisher for Data Science**
 
 
 **Create a virtual environment (Python 3.8):**
