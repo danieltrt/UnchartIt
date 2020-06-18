@@ -29,27 +29,6 @@ data = load(f)
 f.close()
 
 
-def load_dst(opt):
-    # UnchartIt specific
-    logger.debug("Loading programs.")
-    programs = []
-    programs_paths = [data['programs'] + f for f in listdir(data['programs'])]
-    for program_path in programs_paths:
-        programs += [UnchartItProgram(path=program_path)]
-
-    logger.debug("Loading CBMC template.")
-    template = UnchartItTemplate(data["cbmc_template"], data['input_constraints'])
-    interpreter = UnchartItInterpreter(data['input_constraints'])
-
-    # Generic
-    model_checker = CBMC(template)
-    solver = Solver("open-wbo")
-    interaction_model = None
-    if opt == YESNO: interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
-    elif opt == OPTIONS: interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
-    return Distinguisher(interaction_model, programs)
-
-
 def yesno(request, choice_id=None, iter_n=None):
     answer = None
     if iter_n is None:
@@ -134,7 +113,8 @@ def upload(request):
     json = loads(request.POST['inputConstraints'])
     input_constraints = json_to_cprover(json)
     constraints = [input_constraints, int(request.POST['nRows']),
-                   int(request.POST['nCols']) + 1, 8, 24, list(json.keys()) + ['NEW']]
+                   int(request.POST['nCols']) + 1, 8, 24, list(json.keys()) + ['NEW'],
+                   [json[key][0] for key in json.keys()]]
     template = UnchartItTemplate(data['cbmc_template'], constraints)
     interpreter = UnchartItInterpreter(constraints)
     programs = []

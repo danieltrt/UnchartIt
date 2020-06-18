@@ -255,8 +255,8 @@ def json_to_cprover(json):
             ctr = base.format(f"df->table[i][{i}] >= -1 &&"
                               f"df->table[i][{i}] <= {json[col][1]}")
         else:
-            min_val = json[col][1] * 100
-            max_val = json[col][2] * 100
+            min_val = int(json[col][1]) * 100
+            max_val = int(json[col][2]) * 100
             if type == "int":
                 ctr = base.format(f"df->table[i][{i}] >= {min_val} && "
                                   f"df->table[i][{i}] <= {max_val } && "
@@ -265,5 +265,6 @@ def json_to_cprover(json):
                 ctr = base.format(f"df->table[i][{i}] >= {min_val} && "
                                   f"df->table[i][{i}] <= {max_val}")
         ctrs += ctr + ";\n"
+        i += 1
 
     return ctrs

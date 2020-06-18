@@ -9,7 +9,7 @@ class Table:
     text_strings = {-1: "NA", 0: "''", 1: "Google", 2: "Microsoft", 3: "Apple", 4: "Oracle",
                     5: "JP Morgan", 6: "Facebook", 7: "Deutsche Bank", 8: "General Motors", 9: "Logitech", 10: "Sony"}
 
-    def __init__(self, table, active_rows, active_cols, order, col_names):
+    def __init__(self, table, active_rows, active_cols, order, col_names, col_types):
         self.table = table
         self.active_rows = active_rows
         self.active_cols = active_cols
@@ -17,6 +17,7 @@ class Table:
         self.n_rows = sum(active_rows)
         self.n_cols = sum(active_cols) + 1
         self.col_names = [col_names[i] for i in range(len(active_cols)) if active_cols[i]]
+        self.col_types = [col_types[i] for i in range(len(active_cols)) if active_cols[i]]
 
     def display(self):
         string = ""
@@ -37,14 +38,16 @@ class Table:
                     if self.active_rows[self.order[i]] == 1:
                         col += [self.table[self.order[i]][j]]
             if not col: continue
-            if col[0] >= 100:
-                col = list(map(lambda x: x / 100, col))
             cols += [col]
 
-        try:
-            cols[0] = list(map(lambda x: self.text_strings[x], cols[0]))
-        except:
-            logger.error("Could not map {} to strings.".format(cols[0]))
+        for i in range(len(cols)):
+            if self.col_types[i] == 'string':
+                cols[i] = list(map(lambda x: self.text_strings[x], cols[i]))
+            elif self.col_types[i] == 'int':
+                cols[i] = list(map(lambda x: int(x / 100), cols[i]))
+            else:
+                cols[i] = list(map(lambda x: x / 100, cols[i]))
+
         return cols
 
     def get_active_rows(self):
@@ -75,14 +78,15 @@ class UnchartItInterpreter(ModelInterpreter):
         self.n_bits = input_constraints[3]
         self.n_bits_table = input_constraints[4]
         self.col_names = input_constraints[5]
+        self.col_types = input_constraints[6]
 
     def extract_input(self, symbolic_representation, model):
         table, active_rows, active_cols, order = self.extract_table(model, symbolic_representation.input_vars)
-        return Table(table, active_rows, active_cols, order, self.col_names)
+        return Table(table, active_rows, active_cols, order, self.col_names, self.col_types)
 
     def extract_output(self, symbolic_representation, model, idx):
         table, active_rows, active_cols, order = self.extract_table(model, symbolic_representation.output_vars[idx])
-        return Table(table, active_rows, active_cols, order, self.col_names)
+        return Table(table, active_rows, active_cols, order, self.col_names, self.col_types + ['int'])
 
     def extract_table(self, model, vars):
         table = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
