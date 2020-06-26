@@ -44,7 +44,7 @@ class PlotGenerator:
         y_pos = np.arange(len(cols[0]))
 
         w, h = figaspect(4 / 3)
-        plt.axes().set_aspect('equal', 'datalim')
+        # plt.axes().set_aspect('equal', 'datalim')
 
         col_n = self.n % len(self.colors)
         plt.bar(y_pos, cols[1], align='center', color=self.colors[col_n], edgecolor=self.edge_colors[col_n])

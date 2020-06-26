@@ -118,8 +118,9 @@ def upload(request):
     template = UnchartItTemplate(data['cbmc_template'], constraints)
     interpreter = UnchartItInterpreter(constraints)
     programs = []
+    col_mapping = {list(json.keys())[i]: i for i in range(len(json.keys()))}
     for file_name in list(request.FILES.keys()):
-        programs += [UnchartItProgram(f=request.FILES[file_name])]
+        programs += [UnchartItProgram(f=request.FILES[file_name], n_cols=int(request.POST['nCols']), vars=col_mapping)]
 
     # Generic
     model_checker = CBMC(template)

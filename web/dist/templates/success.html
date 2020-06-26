@@ -9,10 +9,15 @@
 </style>
 <div class="container h-100" style="width: 100%">
     <div class="row h-100 justify-content-center align-items-center">
-        <div class="col-md-12 text-center">
-            <h1 class="cover-heading">Correct Program:</h1>
-            <p class="lead">{{program}}</p>
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <h1 style="padding-bottom: 50px" class="cover-heading">Correct Program:</h1>
+            {% for exp in program %}
+            <p style="line-height: 0.8; font-family:'Lucida Console', monospace" class="lead">{{exp}}</p>
+            {% endfor %}
         </div>
+        <div class="col-md-4"></div>
+
     </div>
 </div>
 
