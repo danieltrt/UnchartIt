@@ -1,9 +1,10 @@
 import os
 import re
-
+import threading
 
 class CProgram:
     idx = 1
+    lock = threading.Lock()
 
     def __init__(self, raw_string, string, output_type, input_type):
         self.raw_string = raw_string
@@ -36,9 +37,8 @@ class CProgram:
 
 class UnchartItProgram(CProgram):
 
-    idx = 0
-
     def __init__(self, path=None, f=None, n_cols=10, vars=None):
+        CProgram.lock.acquire()
         self.vars = vars
         self.count = 0
         self.n_cols = n_cols
@@ -58,11 +58,11 @@ class UnchartItProgram(CProgram):
             else:
                 string = raw_string
             super().__init__(raw_string, string, "void", "dataframe")
+        CProgram.lock.release()
 
     def r_to_c(self, r_program):
-        UnchartItProgram.idx += 1
-        idx = UnchartItProgram.idx
-        header = f'void program{idx}(dataframe *df)' + '{' + os.linesep
+        idx = CProgram.idx
+        header = f'void unchartit_gen{idx}(dataframe *df)' + '{' + os.linesep
         lines = ''
         for line in r_program.split(os.linesep):
             if line != os.linesep:

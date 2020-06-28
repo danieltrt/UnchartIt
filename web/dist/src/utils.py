@@ -5,11 +5,14 @@ from matplotlib.figure import figaspect
 import time
 import os
 import random
+import threading
+
 plt.rcdefaults()
 pyplot.locator_params(nbins=5)
 
 
 class PlotGenerator:
+    lock = threading.Lock()
 
     def __init__(self):
         self.fig_n = int(time.time())
@@ -35,6 +38,7 @@ class PlotGenerator:
         self.n = random.randint(0, 255)
 
     def gen_bar_plot(self, table, title, maximum):
+        PlotGenerator.lock.acquire()
         self.fig_n += 1
         self.n += 1
         plt.figure(figsize=(8, 6), dpi=300)
@@ -60,4 +64,5 @@ class PlotGenerator:
         plt.savefig(file_path)
         plt.figure(self.fig_n)
         plt.clf()
+        PlotGenerator.lock.release()
         return "{}.png".format(self.fig_n)
