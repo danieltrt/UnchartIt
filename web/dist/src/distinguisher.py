@@ -35,4 +35,4 @@ class Distinguisher:
     def get_answer(self, answer):
         progs = self.prev_run.get(answer, None)
         if progs is None: progs = self.prev_run[None]
-        return progs[0].raw_string.split(os.linesep)
+        return progs[0].raw_string
