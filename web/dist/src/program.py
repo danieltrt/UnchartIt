@@ -42,13 +42,22 @@ class UnchartItProgram(CProgram):
         self.vars = vars
         self.count = 0
         self.n_cols = n_cols
+        rx = re.compile(r'\.R$')
         if path is not None:
             with open(path, "r+") as f:
-                string = f.read()
-                super().__init__(string, self.r_to_c(string), "void", "dataframe")
+                raw_string = f.read()
+                if rx.match(str(f)):
+                    string = self.r_to_c(raw_string)
+                else:
+                    string = raw_string
+                super().__init__(raw_string, string, "void", "dataframe")
         elif f is not None:
-            string = f.read().decode(encoding='UTF-8')
-            super().__init__(string, self.r_to_c(string), "void", "dataframe")
+            raw_string = f.read().decode(encoding='UTF-8')
+            if rx.search(str(f)):
+                string = self.r_to_c(raw_string)
+            else:
+                string = raw_string
+            super().__init__(raw_string, string, "void", "dataframe")
 
     def r_to_c(self, r_program):
         UnchartItProgram.idx += 1
