@@ -92,6 +92,7 @@ class CBMC(ModelChecker):
     cbmc_input_name = "c main::1::input!0@1#"
     cbmc_output_name = "c main::1::output!0@1#"
     n_soft_clauses = 1024
+    ERR = 6
 
     def __init__(self, template):
         self.template = template
@@ -112,6 +113,8 @@ class CBMC(ModelChecker):
         out, err = p.communicate()
         lns = str(out, encoding='utf-8')
         logger.info("CBMC return code {}.".format(p.returncode))
+        if p.returncode == CBMC.ERR:
+            raise ValueError("Programs with syntax errors.")
 
         n_vars, n_clauses, inc_dimacs = self.get_dimacs(lns.splitlines())
         eq_vars = self.get_eq_vars(lns.splitlines())

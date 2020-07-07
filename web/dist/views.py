@@ -39,7 +39,12 @@ def yesno(request, choice_id=None, iter_n=None):
     else:
         dst = distinguishers[iter_n]
 
-    inpt, output = dst.distinguish()
+    try:
+        inpt, output = dst.distinguish()
+    except ValueError as e:
+        logger.error(str(e))
+        return HttpResponseRedirect(reverse("dist:index"))
+
     if inpt is True and output is True:
         return render(request, 'success.html', {'program': dst.get_answer(answer)})
     question = Question(id=None, question_text=inpt, interaction_model=YESNO)
@@ -63,7 +68,12 @@ def options(request, choice_id=None, iter_n=None):
     else:
         dst = distinguishers[iter_n]
 
-    inpt, output = dst.distinguish()
+    try:
+        inpt, output = dst.distinguish()
+    except ValueError as e:
+        logger.error(str(e))
+        return HttpResponseRedirect(reverse("dist:index"))
+
     if inpt is True and output is True:
         return render(request, 'success.html', {'program': dst.get_answer(answer)})
     question = Question(id=None, question_text=inpt, interaction_model=OPTIONS)
