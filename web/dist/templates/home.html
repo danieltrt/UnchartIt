@@ -59,6 +59,9 @@
             });
 
             this.on("sending", function (file, xhr, data) {
+                document.querySelector("#loading").hidden = false;
+                document.querySelector("#submit-all").classList.add("disabled");
+
                 let nRows = document.querySelector("#nRows");
                 let nCols = document.querySelector("#nCols");
                 //let nBits = document.querySelector("#nBits");
@@ -133,7 +136,7 @@
             let tmp = '';
             for (let i = 0; i < nCols; i++) {
                 tmp += '<div style="top:-4px" class="col-md-{0}" >'.format(div[i + 1] - div[i]) +
-                    '<input onchange="changeConstraintValues({0})" type="text" class="form-control" id="name{0}" value="Name {1}" >'.format(i, i+1) +
+                    '<input onchange="changeConstraintValues({0})" type="text" class="form-control" id="name{0}" value="Name {1}" >'.format(i, i + 1) +
                     '</div>'
             }
             return tmp;
@@ -252,6 +255,8 @@
                 <div class="form-group">
                     <button type="button" style="float: right;" id="submit-all" class="btn btn-primary disabled">
                         Distinguish
+                        <span id="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                              hidden></span>
                     </button>
                 </div>
 
