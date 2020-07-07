@@ -8,15 +8,13 @@ logger = get_logger("dist.distinguisher")
 
 
 class Distinguisher:
-    n = 0
 
-    def __init__(self, interaction_model: InteractionModel, programs: List[CProgram]):
+    def __init__(self, interaction_model: InteractionModel, programs: List[CProgram], n):
         self.interaction_model = interaction_model
         self.programs = programs
         self.prev_run = None
         self.done = False
-        self.n = Distinguisher.n
-        Distinguisher.n += 1
+        self.n = n
 
     def distinguish(self):
         if not self.done:

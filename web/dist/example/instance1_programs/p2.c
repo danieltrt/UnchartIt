@@ -3,6 +3,3 @@ void program2(dataframe* df) {
     count(df);
     arrange(df,descending,1);
 }
-
-
-xçal

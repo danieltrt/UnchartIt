@@ -17,11 +17,12 @@ from .models import *
 from .forms import *
 from django.shortcuts import redirect
 from django.http import JsonResponse
+import pickle
+import time
 
 
 logger = get_logger("dist")
 logger.setLevel("DEBUG")
-distinguishers = {}
 YESNO = "Yes/No"
 OPTIONS = "Options"
 f = open("./dist/example/instance1.json")
@@ -33,11 +34,11 @@ def yesno(request, choice_id=None, iter_n=None):
     answer = None
     if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
-        dst = distinguishers[selected_choice.question_text]
+        dst = pickle.load(open(f'./distinguisher_{selected_choice.question_id}.bin', 'rb'))
         dst.update_programs(selected_choice.correctness)
         answer = selected_choice.correctness
     else:
-        dst = distinguishers[iter_n]
+        dst = pickle.load(open(f'./distinguisher_{iter_n}.bin', 'rb'))
 
     try:
         inpt, output = dst.distinguish()
@@ -50,9 +51,9 @@ def yesno(request, choice_id=None, iter_n=None):
     question = Question(id=None, question_text=inpt, interaction_model=YESNO)
     question.save()
     for out in output:
-        choice = Choice(id=None, question_text=question, choice_text=out)
+        choice = Choice(id=None, question_text=question, choice_text=out, question_id=question.id)
         choice.save()
-    distinguishers[question] = dst
+    pickle.dump(dst, open(f'./distinguisher_{question.question_id}.bin', 'wb'))
     return render(request, 'yesno.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
@@ -62,11 +63,11 @@ def options(request, choice_id=None, iter_n=None):
     answer = None
     if iter_n is None:
         selected_choice = get_object_or_404(Choice, pk=choice_id)
-        dst = distinguishers[selected_choice.question_text]
+        dst = pickle.load(open(f'./distinguisher_{selected_choice.question_id}.bin', 'rb'))
         dst.update_programs(selected_choice.choice_text)
         answer = selected_choice.choice_text
     else:
-        dst = distinguishers[iter_n]
+        dst = pickle.load(open(f'./distinguisher_{iter_n}.bin', 'rb'))
 
     try:
         inpt, output = dst.distinguish()
@@ -79,9 +80,9 @@ def options(request, choice_id=None, iter_n=None):
     question = Question(id=None, question_text=inpt, interaction_model=OPTIONS)
     question.save()
     for out in output:
-        choice = Choice(id=None, question_text=question, choice_text=out)
+        choice = Choice(id=None, question_text=question, choice_text=out, question_id=question.id)
         choice.save()
-    distinguishers[question] = dst
+    pickle.dump(dst, open(f'./distinguisher_{question.id}.bin', 'wb'))
     return render(request, 'options.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
@@ -138,14 +139,14 @@ def upload(request):
 
     if request.POST['interactionModel'] == YESNO:
         interaction_model = YesNoInteractionModel(model_checker, solver, interpreter)
-        dst = Distinguisher(interaction_model, programs)
-        distinguishers[dst.n] = dst
+        dst = Distinguisher(interaction_model, programs, int(time.time()))
+        pickle.dump(dst, open(f'./distinguisher_{dst.n}.bin', 'wb'))
         return HttpResponse(reverse("dist:yesno_iter", args=(0, dst.n,)))
 
     elif request.POST['interactionModel'] == OPTIONS:
         interaction_model = OptionsInteractionModel(model_checker, solver, interpreter)
-        dst = Distinguisher(interaction_model, programs)
-        distinguishers[dst.n] = dst
+        dst = Distinguisher(interaction_model, programs, int(time.time()))
+        pickle.dump(dst, open(f'./distinguisher_{dst.n}.bin', 'wb'))
         return HttpResponse(reverse("dist:options_iter", args=(0, dst.n,)))
 
 
