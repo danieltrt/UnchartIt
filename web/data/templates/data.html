@@ -56,9 +56,10 @@
 
             this.on("sending", function (file, xhr, data) {
                 document.querySelector("#loading").hidden = false;
-                data.append("nMax", 10);
-                data.append("nMin", 0);
-
+                let min = document.querySelector("#minval");
+                let max = document.querySelector("#maxval");
+                data.append("max", max.value);
+                data.append("min", min.value);
             });
 
         }
