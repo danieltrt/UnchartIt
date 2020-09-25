@@ -22,8 +22,11 @@ from . import settings
 
 urlpatterns = [
     path('dist/', include('dist.urls')),
+    path('synth/', include('synth.urls')),
+    path('data/', include('data.urls')),
+    path('home/', include('home.urls')),
     path('admin/', admin.site.urls),
-    path('', RedirectView.as_view(url='/dist/', permanent=True)),
+    path('', RedirectView.as_view(url='/home/', permanent=True)),
 
 ]
 

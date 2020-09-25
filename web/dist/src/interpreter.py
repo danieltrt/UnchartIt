@@ -6,8 +6,8 @@ logger = get_logger("dist.interpreter")
 
 class Table:
 
-    text_strings = {-1: "NA", 0: "''", 1: "Google", 2: "Microsoft", 3: "Apple", 4: "Oracle",
-                    5: "JP Morgan", 6: "Facebook", 7: "Deutsche Bank", 8: "General Motors", 9: "Logitech", 10: "Sony"}
+    text_strings = {-1: "NA", 0: "''", 1: "GVA", 2: "OPO", 3: "LIS", 4: "BER",
+                    5: "GVA", 6: "OPO", 7: "LIS", 8: "BER", 9: "OPO", 10: "LIS"}
 
     def __init__(self, table, active_rows, active_cols, order, col_names, col_types):
         self.table = table
@@ -58,7 +58,9 @@ class Table:
         return self.col_names
 
     def get_maximum(self):
-        return max(self.get_active_cols()[-1])
+        if self.get_active_cols():
+            return max(self.get_active_cols()[-1])
+        return 1
 
 
 class ModelInterpreter:
@@ -122,6 +124,11 @@ class UnchartItInterpreter(ModelInterpreter):
                 bit_str = "0" + bit_str
             elif vars[first] == "TRUE":
                 bit_str = "1" + bit_str
+            elif vars[first].startswith("-"):
+                if not model[vars[first][1:]]:
+                    bit_str = "1" + bit_str
+                else:
+                    bit_str = "0" + bit_str
             elif model[vars[first]]:
                 bit_str = "1" + bit_str
             else:

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    #myDropzone {
+        cursor: pointer;
+        border: 0.1em dashed rgba(0, 0, 0, 0.5);
+    }
+
+    .dz-message {
+        padding: 40px;
+    }
+
+    .dropzone .dz-preview .dz-image {
+
+    }
+
+    .dz-progress {
+        /* progress bar covers file name */
+        display: none !important;
+    }
+
+</style>
+
+<script>
+    Dropzone.options.myDropzone = {
+        // Prevents Dropzone from uploading dropped files immediately
+        autoProcessQueue: false,
+        acceptedFiles: ".png, .jpg",
+        parallelUploads: 1,
+        addRemoveLinks: true,
+        maxFilesize: 1, // MB
+        url: "{% url 'data:upload' %}",
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        init: function () {
+            let submitButton = document.querySelector("#submit-all")
+            myDropzone = this; // closure
+
+            submitButton.addEventListener("click", function () {
+                myDropzone.processQueue();
+                // autoProcessQueue: true// Tell Dropzone to process all queued files.
+            });
+
+            // You might want to show the submit button only when
+            // files are dropped here:
+            this.on("addedfile", function () {
+                submitButton.classList.remove("disabled");
+            });
+
+            this.on("complete", function (file) {
+                if (this.getUploadingFiles().length === 0 && this.getQueuedFiles().length === 0) {
+                    window.location.replace(file.xhr.response)
+                }
+            });
+
+            this.on("sending", function (file, xhr, data) {
+                document.querySelector("#loading").hidden = false;
+                data.append("nMax", 10);
+                data.append("nMin", 0);
+
+            });
+
+        }
+    };
+</script>
+
+
+<div class="container">
+    <div style="padding-bottom: 50px" class="row"></div>
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label>Axis</label>
+                    <input class="form-control" type="text" value="Values" readonly>
+                    </select>
+                </div>
+                <div class="col-md-1"></div>
+                <div class="form-group col-md-4">
+                    <label>Min Value</label>
+                    <input value="0" id="minval" class="form-control" type="number">
+                </div>
+                <div class="form-group  col-md-4">
+                    <label>Max Value</label>
+                    <input value="128" id="maxval" class="form-control" type="number">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3"></div>
+
+    </div>
+    <div class="row">
+        <div class="col-md-3"></div>
+
+        <div class="col-md-6">
+
+            <div class="form-group">
+                <div id='myDropzone' name='dropzone' class='dropzone'>
+                    <div class="dz-message" data-dz-message><span>Drop the chart here.</span></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="button" style="float: right;" id="submit-all" class="btn btn-primary disabled">
+                    Submit
+                    <span id="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                          hidden></span>
+                </button>
+            </div>
+
+
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    @media (min-width: 768px) {
+        #rude {
+            width: 70%;
+        }
+    }
+
+    @media (min-width: 1920px) {
+        #rude {
+            width: 70%;
+        }
+    }
+
+    @media (orientation: landscape) {
+        #pipeline {
+            display: block !important;
+        }
+        #pipeline_vertical {
+            display: none !important;
+        }
+    }
+
+    @media (orientation: portrait) {
+        #pipeline {
+            display: none !important;
+        }
+        #pipeline_vertical {
+            display: block !important;
+        }
+    }
+
+    .icons {
+        text-align: right;
+    }
+    .icons a {
+        color: rgba(0, 0, 0, .6);
+        text-decoration: none;
+    }
+
+    ul.icons {
+        cursor: default;
+        list-style: none;
+        padding-right: 0;
+    }
+
+    ul.icons li {
+        display: inline-block;
+        padding: 0 1em 0 0;
+        font-size: 120%;
+        font-weight: bold;
+    }
+
+    ul.icons li:last-child {
+        padding-right: 0 !important;
+    }
+
+    ul.icons li .icon:before {
+        font-size: 1.25em;
+    }
+
+    ul.icons li span {
+        display: inline-block;
+        padding: 0 0 0 .5em;
+        font-size: 80%;
+        font-family: Merriweather, sans-serif;
+        font-weight: normal;
+    }
+</style>
+
+<main role="main">
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <div class="container-fluid" id="rude">
+            <h1 style="font-variant: small-caps; font-weight: 600" class="display-5">UnchartIt</h1>
+            <h5 style="font-weight: 300; color: #404040;">An Interactive Framework for Program Recovery from Charts</h5>
+            <hr>
+            <p style="font-size: 100%; text-align: justify" class="mt-5"><span style="font-variant: small-caps;">UnchartIt</span>
+                is the first program synthesizer
+                to recover data transformations from chart images.
+                Given an input table and a chart, <span style="font-variant: small-caps;">UnchartIt</span>
+                automatically recovers the data transformations
+                in four steps: data extraction,
+                candidate generation, candidate ranking, and candidate disambiguation.</p>
+
+            <p style="font-size: 0.9em" class="mt-5">
+                <span style="font-weight: 600">Authors</span>: Daniel Ramos, Jorge Pereira, Inês Lynce, Vasco Manquinho,
+                Ruben Martins
+            </p>
+            <ul class="icons">
+                <li>
+                    <a href="https://github.com/danieltrt/Distinguisher" class="fa fa-file">
+                        <span>Paper</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/danieltrt/Distinguisher" class="fa fa-github">
+                        <span>Source Code</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="container">
+        <img id="pipeline" class="img-fluid mx-auto d-block" src="/media/new_unchartit.pdf"/>
+        <img id="pipeline_vertical" class="img-fluid mx-auto d-block" src="/media/unchartit_vertical.pdf"/>
+    </div>
+</main>
+
+{% endblock %}

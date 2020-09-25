@@ -8,6 +8,8 @@
 `pip3 install click==7.1.2`\
 `pip3 install matplotlib==3.2.1`\
 `pip3 install numpy==1.18.4`\
+`pip3 install keras==2.3.0`\
+`pip3 install efficientnet==1.1.0`
 
 **External requirements**:\
 Model checker: C Bounded Model Checker (CBMC)\

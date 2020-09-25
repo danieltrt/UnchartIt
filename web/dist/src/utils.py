@@ -45,16 +45,17 @@ class PlotGenerator:
         plt.tight_layout()
 
         cols = table.get_active_cols()
-        y_pos = np.arange(len(cols[0]))
+        if cols:
+            y_pos = np.arange(len(cols[0]))
 
-        w, h = figaspect(4 / 3)
-        # plt.axes().set_aspect('equal', 'datalim')
+            w, h = figaspect(4 / 3)
+            # plt.axes().set_aspect('equal', 'datalim')
 
-        col_n = self.n % len(self.colors)
-        plt.bar(y_pos, cols[1], align='center', color=self.colors[col_n], edgecolor=self.edge_colors[col_n])
-        plt.xticks(y_pos, cols[0], fontsize=14)
-        plt.yticks(np.arange(0, (5.5/5)*maximum, step=maximum/5), fontsize=14)
-        plt.ylim(bottom=0, top=(5.5/5)*maximum)
+            col_n = self.n % len(self.colors)
+            plt.bar(y_pos, cols[1], align='center', color=self.colors[col_n], edgecolor=self.edge_colors[col_n])
+            plt.xticks(y_pos, cols[0], fontsize=14)
+            plt.yticks(np.arange(0, (5.5/5)*maximum, step=maximum/5), fontsize=14)
+            plt.ylim(bottom=0, top=(5.5/5)*maximum)
 
         plt.xlabel(table.col_names[0], fontsize=14, labelpad=15)
         plt.ylabel(table.col_names[1], fontsize=14, labelpad=15)

@@ -53,7 +53,7 @@ def yesno(request, choice_id=None, iter_n=None):
     for out in output:
         choice = Choice(id=None, question_text=question, choice_text=out, question_id=question.id)
         choice.save()
-    pickle.dump(dst, open(f'./distinguisher_{question.question_id}.bin', 'wb'))
+    pickle.dump(dst, open(f'./distinguisher_{question.id}.bin', 'wb'))
     return render(request, 'yesno.html', {
         'question': question, "header": inpt.get_header(), "rows": inpt.get_active_rows()
     })
@@ -114,7 +114,7 @@ def submit(request, question_id):
 
 
 def index(request):
-    return render(request, 'home.html')
+    return render(request, 'distinguisher.html')
 
 
 def upload(request):

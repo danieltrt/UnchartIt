@@ -83,10 +83,22 @@ class UnchartItProgram(CProgram):
                 return f'filter(df, lte, {self.vars[col]}, {val});'
             elif line.find('==') != -1:
                 col, val = rx.search(line).group(1).replace(' ', '').split('==')
+                if val == "\"LIS\"":
+                    val = 3
+                if val == "\"OPO\"":
+                    val = 2
+                if val == "\"GVA\"":
+                    val = 1
                 self.check_col(col)
                 return f'filter(df, eq, {self.vars[col]}, {val});'
             elif line.find('!=') != -1:
                 col, val = rx.search(line).group(1).replace(' ', '').split('!=')
+                if val == "\"LIS\"":
+                    val = 3
+                if val == "\"OPO\"":
+                    val = 2
+                if val == "\"GVA\"":
+                    val = 1
                 self.check_col(col)
                 return f'filter(df, ne, {self.vars[col]}, {val});'
         elif line.find('mutate_date') != -1:
