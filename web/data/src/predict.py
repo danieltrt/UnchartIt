@@ -21,8 +21,7 @@ N_TOTAL_BARS = 15
 INPUT_SIZE = 224
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
-WEIGHTS_PATH = CURRENT_PATH + "/weights/weights.hdf5"
-
+WEIGHTS_PATH = CURRENT_PATH + "/weights.nosync/weights.hdf5"
 
 
 def get_model():
@@ -38,16 +37,12 @@ def get_model():
     return model
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-image_path', metavar='i', type=str, help='image path')
-    parser.add_argument('-max', metavar='m', type=int, help='max value y')
-    args = parser.parse_args()
-
+def chart_to_table(file, min, max):
     model = get_model()
     model.load_weights(WEIGHTS_PATH)
 
-    img = cv2.imread(args.image_path, cv2.IMREAD_UNCHANGED)
+    img = np.asarray(bytearray(file.read()), dtype="uint8")
+    img = cv2.imdecode(img, cv2.IMREAD_UNCHANGED)
     img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
     img = cv2.resize(img, (INPUT_SIZE, INPUT_SIZE), interpolation=cv2.INTER_AREA)
     img = img / 255
@@ -57,6 +52,6 @@ if __name__ == "__main__":
     n_bars = np.argmax(y[0]) + 1
     values = y[1:]
 
-    print(n_bars, [el[0][0]*2.8 for el in values])
+    return n_bars, [el[0][0]*(max-min) for el in values]
 
 
