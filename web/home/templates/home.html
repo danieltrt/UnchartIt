@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block content %}
 
 <style>
@@ -106,8 +105,9 @@
         </div>
     </div>
     <div class="container">
-        <img id="pipeline" class="img-fluid mx-auto d-block" src="/media/new_unchartit.pdf"/>
-        <img id="pipeline_vertical" class="img-fluid mx-auto d-block" src="/media/unchartit_vertical.pdf"/>
+	    {% load static %}
+	    <img id="pipeline" class="img-fluid mx-auto d-block" src="{% static 'horizontal.png' %}"/>
+	    <img id="pipeline_vertical" class="img-fluid mx-auto d-block" src="{% static 'vertical.png' %}"/>
     </div>
 </main>
 
