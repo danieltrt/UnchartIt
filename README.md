@@ -5,7 +5,7 @@ Source code for synthesizer: UnchartIt/web/synth/src/ \
 Source code for distinguisher: UnchartIt/web/dist/src/ \
 Source code for neural network: UnchartIt/web/data/src/
 
-__________________
+
 ## How to run the web interface:
 
 **Create a virtual environment (Python 3.7):**
