@@ -1,6 +1,6 @@
-# UnchartIt 
-### An Interactive Framework for Program Recovery from Charts
+# UnchartIt: An Interactive Framework for Program Recovery from Charts
 
+## Source code:
 Source code for synthesizer: UnchartIt/web/synth/src/ \
 Source code for distinguisher: UnchartIt/web/dist/src/ \
 Source code for neural network: UnchartIt/web/data/src/
